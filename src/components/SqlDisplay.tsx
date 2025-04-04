@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,27 +33,58 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
   const formatExplanation = (text: string) => {
     if (!text) return null;
 
-    // Split by numbered points if they exist
-    const sections = text.split(/(\d+\.\s+\*\*[\w\s]+:?\*\*)/g);
+    // Split the explanation into sections based on markdown headings
+    const sections = text.split(/###\s+([\d\.]+\s+[^#\n]+)/g);
     
     if (sections.length > 1) {
       return (
         <div className="space-y-4">
           {sections.map((section, index) => {
-            if (section.match(/^\d+\.\s+\*\*[\w\s]+:?\*\*/)) {
-              // This is a section header
+            // This is a section header
+            if (index % 2 === 1) {
               return (
-                <h4 key={index} className="text-base font-semibold text-purple-700 dark:text-purple-300 mt-4">
-                  {section.replace(/\*\*/g, '')}
-                </h4>
+                <h3 key={index} className="text-base font-semibold text-purple-700 dark:text-purple-300 mt-6 border-b border-purple-100 dark:border-purple-800 pb-1">
+                  {section}
+                </h3>
               );
-            } else if (section.trim()) {
-              // This is content
-              return (
-                <p key={index} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed pl-4 border-l-2 border-purple-200 dark:border-purple-800">
-                  {formatBoldText(section)}
-                </p>
-              );
+            } 
+            // This is section content
+            else if (index > 0 && section.trim()) {
+              // Process subsections (like "a. Subquery")
+              const subsections = section.split(/####\s+([a-z]\.+\s+[^#\n]+)/g);
+              
+              if (subsections.length > 1) {
+                return (
+                  <div key={index} className="space-y-3">
+                    {subsections.map((subsection, subIndex) => {
+                      // This is a subsection header
+                      if (subIndex % 2 === 1) {
+                        return (
+                          <h4 key={`${index}-${subIndex}`} className="text-sm font-semibold text-purple-600 dark:text-purple-400 mt-4">
+                            {subsection}
+                          </h4>
+                        );
+                      } 
+                      // This is subsection content
+                      else if (subIndex > 0 && subsection.trim()) {
+                        return (
+                          <div key={`${index}-${subIndex}`} className="pl-4 border-l-2 border-purple-100 dark:border-purple-900">
+                            {formatContent(subsection)}
+                          </div>
+                        );
+                      }
+                      // First subsection (before any #### header)
+                      else if (subIndex === 0 && subsection.trim()) {
+                        return formatContent(subsection, `${index}-${subIndex}`);
+                      }
+                      return null;
+                    })}
+                  </div>
+                );
+              } else {
+                // No subsections, just format the content
+                return formatContent(section, index);
+              }
             }
             return null;
           })}
@@ -60,48 +92,110 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
       );
     }
     
-    // If no numbered sections, check for dash-prefixed bullet points
-    const bulletPoints = text.split(/(-\s+\*\*[\w\s]+:?\*\*)/g);
-    if (bulletPoints.length > 1) {
-      return (
-        <div className="space-y-2">
-          {bulletPoints.map((point, index) => {
-            if (point.match(/-\s+\*\*[\w\s]+:?\*\*/)) {
-              return (
-                <div key={index} className="flex items-start gap-2 mt-2">
-                  <List className="h-4 w-4 text-purple-600 mt-1 flex-shrink-0" />
-                  <h4 className="text-base font-semibold text-purple-700 dark:text-purple-300">
-                    {point.replace(/-\s+\*\*|\*\*/g, '')}
-                  </h4>
-                </div>
-              );
-            } else if (point.trim()) {
-              return (
-                <p key={index} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed pl-6 ml-4">
-                  {formatBoldText(point)}
-                </p>
-              );
-            }
-            return null;
-          })}
-        </div>
-      );
-    }
+    // If no sections found, format as regular content
+    return formatContent(text);
+  };
+  
+  const formatContent = (content: string, key?: string | number) => {
+    if (!content.trim()) return null;
     
-    // Otherwise, just apply paragraph styling with some enhancements
+    // Handle code blocks within the explanation
+    const parts = content.split(/```sql\s*([\s\S]*?)```/g);
+    
+    // Handle numbered lists (1., 2., etc)
+    const processNumberedLists = (text: string) => {
+      const listItems = text.split(/(\d+\.\s+)/g);
+      if (listItems.length > 2) {
+        return (
+          <ul className="list-decimal pl-6 space-y-2 my-3">
+            {listItems.map((item, idx) => {
+              // If it's a list marker (1., 2., etc)
+              if (idx % 2 === 1) {
+                const nextItem = listItems[idx + 1] || '';
+                return (
+                  <li key={idx} className="pl-1">
+                    {formatBoldText(nextItem)}
+                  </li>
+                );
+              }
+              // If it's the first part before any list items
+              else if (idx === 0 && item.trim()) {
+                return (
+                  <div key={idx} className="mb-2">
+                    {formatBoldText(item)}
+                  </div>
+                );
+              }
+              return null;
+            })}
+          </ul>
+        );
+      }
+      return formatBoldText(text);
+    };
+    
     return (
-      <div className="space-y-4">
-        {text.split('\n\n').map((paragraph, index) => (
-          <p key={index} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-            {formatBoldText(paragraph)}
-          </p>
-        ))}
+      <div key={key} className="text-sm text-gray-700 dark:text-gray-300 space-y-3">
+        {parts.map((part, partIndex) => {
+          // This is SQL code inside ```sql ```
+          if (partIndex % 2 === 1) {
+            return (
+              <div key={partIndex} className="bg-gray-800 rounded p-3 my-3 text-green-400 font-mono text-xs overflow-x-auto">
+                {part.trim()}
+              </div>
+            );
+          } 
+          // This is regular text, process for numbered lists and formatting
+          else if (part.trim()) {
+            const paragraphs = part.split(/\n\n+/);
+            return (
+              <div key={partIndex} className="space-y-3">
+                {paragraphs.map((para, paraIndex) => {
+                  if (para.trim()) {
+                    if (/^\d+\.\s+/.test(para)) {
+                      return (
+                        <div key={paraIndex} className="my-2">
+                          {processNumberedLists(para)}
+                        </div>
+                      );
+                    } else if (para.includes('-')) {
+                      // Handle bullet points
+                      const bulletItems = para.split(/\n\s*-\s+/);
+                      if (bulletItems.length > 1) {
+                        return (
+                          <ul key={paraIndex} className="list-disc pl-6 space-y-2 my-3">
+                            {bulletItems.map((item, itemIdx) => {
+                              if (itemIdx === 0 && !item.trim()) return null;
+                              return (
+                                <li key={itemIdx} className="pl-1">
+                                  {formatBoldText(itemIdx === 0 ? item : `${item}`)}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        );
+                      }
+                    }
+                    return (
+                      <p key={paraIndex} className="leading-relaxed">
+                        {formatBoldText(para)}
+                      </p>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            );
+          }
+          return null;
+        })}
       </div>
     );
   };
   
   const formatBoldText = (text: string) => {
-    const parts = text.split(/(\*\*.*?\*\*)/g);
+    if (!text) return null;
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={index} className="text-purple-800 dark:text-purple-300">{part.slice(2, -2)}</strong>;

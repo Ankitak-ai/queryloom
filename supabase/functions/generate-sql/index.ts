@@ -73,10 +73,10 @@ Your explanation should:
 1. **Use Markdown formatting** with section headers using numbered points
 2. **Bold important terms and concepts** using ** around the text
 3. **Structure your explanation clearly** with the following sections:
-   - Query Strategy: Overview of the approach
-   - Step-by-Step Breakdown: Explain each component
-   - Optimization Choices: Why this approach is efficient
-   - Expected Results: What the query will return
+   - ### 1. Query Strategy: Overview of the approach
+   - ### 2. Step-by-Step Breakdown
+   - ### 3. Optimization Choices
+   - ### 4. Expected Results: What the query will return
 
 Keep your explanation thorough but well-structured for easy reading.`
         }
