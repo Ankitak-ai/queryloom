@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/sonner';
+import { toast } from '@/lib/toast';
 import { Upload } from "lucide-react";
 
 interface FileUploadProps {

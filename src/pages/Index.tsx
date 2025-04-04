@@ -5,7 +5,7 @@ import FileUpload from '@/components/FileUpload';
 import DatasetPreview from '@/components/DatasetPreview';
 import QueryInput from '@/components/QueryInput';
 import SqlDisplay from '@/components/SqlDisplay';
-import { toast } from '@/components/ui/sonner';
+import { toast } from '@/lib/toast';
 
 interface DatasetFile {
   file: File;
