@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,7 +20,7 @@ const Auth = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // If user is already authenticated, redirect to main page
+    // If user is already authenticated, redirect to main page immediately
     if (user) {
       navigate('/');
       return;
@@ -85,6 +84,12 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  // If user is already logged in, don't show the login form at all
+  // This is redundant with the redirect in useEffect, but adds an extra layer of protection
+  if (user) {
+    return null;
+  }
 
   // Show registration complete message
   if (registrationComplete) {
