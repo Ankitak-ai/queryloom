@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { parseCSV, inferDataTypes } from '@/utils/csvParser';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +36,7 @@ const Index = () => {
   const [naturalLanguageQuery, setNaturalLanguageQuery] = useState<string>('');
   const { user, queryUsage, incrementQueryUsage, getQueryLimit } = useAuth();
   const navigate = useNavigate();
+  const sqlDisplayRef = useRef<HTMLDivElement>(null);
 
   const remainingQueries = getQueryLimit() - queryUsage.count;
   const resetTime = new Date(queryUsage.resetTime);
@@ -43,6 +44,13 @@ const Index = () => {
   useEffect(() => {
     trackPageVisit('/');
   }, []);
+
+  useEffect(() => {
+    // Scroll to SQL display when SQL is generated
+    if (generatedSql && sqlDisplayRef.current) {
+      sqlDisplayRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [generatedSql]);
 
   const handleFilesUploaded = async (files: File[]) => {
     const newDatasets: DatasetFile[] = [];
@@ -231,10 +239,12 @@ const Index = () => {
               />
               
               {generatedSql && (
-                <SqlDisplay 
-                  sql={generatedSql} 
-                  explanation={sqlExplanation}
-                />
+                <div ref={sqlDisplayRef}>
+                  <SqlDisplay 
+                    sql={generatedSql} 
+                    explanation={sqlExplanation}
+                  />
+                </div>
               )}
             </div>
             
