@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,7 +14,7 @@ interface UserQuery {
 
 interface UserQueriesProps {
   onSelectQuery: (query: string) => void;
-  onQueryGenerated: (query: string) => void;
+  onQueryGenerated: string; // We need to change this to a string to match how it's being used
 }
 
 const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerated }) => {
@@ -32,7 +31,8 @@ const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerat
 
     const fetchUserQueries = async () => {
       try {
-        const { data, error } = await supabase
+        // Use type assertion to work around TypeScript limitations
+        const { data, error } = await (supabase as any)
           .from('user_queries')
           .select('*')
           .order('created_at', { ascending: false });

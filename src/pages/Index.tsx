@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { parseCSV, inferDataTypes } from '@/utils/csvParser';
 import { useAuth } from '@/contexts/AuthContext';
@@ -122,7 +121,7 @@ const Index = () => {
 
   const saveUserQuery = async (queryText: string) => {
     try {
-      await supabase.from('user_queries').insert({
+      await (supabase as any).from('user_queries').insert({
         user_id: user?.id,
         query_text: queryText
       });

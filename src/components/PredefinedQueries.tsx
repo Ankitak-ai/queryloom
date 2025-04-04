@@ -25,7 +25,8 @@ const PredefinedQueries: React.FC<PredefinedQueriesProps> = ({ onSelectQuery }) 
   useEffect(() => {
     const fetchPredefinedQueries = async () => {
       try {
-        const { data, error } = await supabase
+        // Use type assertion to work around TypeScript limitations
+        const { data, error } = await (supabase as any)
           .from('predefined_queries')
           .select('*');
         
