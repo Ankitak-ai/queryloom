@@ -1,38 +1,16 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Brain, LogIn, LogOut, User, Settings } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useEffect, useState } from 'react';
-import { getUserProfile } from '@/utils/supabaseHelpers';
+import { Brain, LogIn, LogOut, User } from 'lucide-react';
 
 const AppHeader: React.FC = () => {
   const { user, signOut } = useAuth();
-  const [username, setUsername] = useState<string | null>(null);
 
   const handleSignOut = async () => {
     await signOut();
   };
-
-  useEffect(() => {
-    if (user) {
-      const fetchUsername = async () => {
-        try {
-          const { data, error } = await getUserProfile(user.id);
-            
-          if (!error && data && data.length > 0) {
-            setUsername(data[0].username);
-          }
-        } catch (error) {
-          console.error("Error fetching username:", error);
-        }
-      };
-      
-      fetchUsername();
-    }
-  }, [user]);
 
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm py-3">
@@ -45,32 +23,19 @@ const AppHeader: React.FC = () => {
         <div>
           {user ? (
             <div className="flex items-center gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 p-1 h-auto hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
-                    <Avatar className="h-8 w-8 cursor-pointer">
-                      <AvatarFallback className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                        {username ? username.substring(0, 2).toUpperCase() : user.email?.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm text-gray-600 dark:text-gray-300 hidden sm:inline">
-                      {username || user.email}
-                    </span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
-                      <Settings size={14} />
-                      <span>Settings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer">
-                    <LogOut size={14} />
-                    <span>Sign Out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
+                <User size={14} className="mr-1" />
+                <span className="hidden sm:inline">{user.email}</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSignOut}
+                className="text-xs flex items-center gap-1"
+              >
+                <LogOut size={14} />
+                <span>Sign Out</span>
+              </Button>
             </div>
           ) : (
             <Button 

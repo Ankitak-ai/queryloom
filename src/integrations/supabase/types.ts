@@ -57,27 +57,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
-        Row: {
-          created_at: string
-          id: string
-          updated_at: string
-          username: string | null
-        }
-        Insert: {
-          created_at?: string
-          id: string
-          updated_at?: string
-          username?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          updated_at?: string
-          username?: string | null
-        }
-        Relationships: []
-      }
       user_queries: {
         Row: {
           created_at: string
@@ -122,15 +101,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_username_exists: {
-        Args: {
-          username_to_check: string
-          exclude_user_id: string
-        }
-        Returns: {
-          username_exists: boolean
-        }[]
-      }
       create_visits_table: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -144,30 +114,12 @@ export type Database = {
           unique_visitors: number
         }[]
       }
-      get_user_profile: {
-        Args: {
-          user_id: string
-        }
-        Returns: {
-          id: string
-          username: string
-          created_at: string
-          updated_at: string
-        }[]
-      }
       get_visitor_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
           total_visits: number
           unique_visitors: number
         }[]
-      }
-      update_user_profile: {
-        Args: {
-          user_id: string
-          new_username: string
-        }
-        Returns: undefined
       }
     }
     Enums: {
