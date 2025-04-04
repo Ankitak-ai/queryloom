@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Brain } from 'lucide-react';
 
 interface QueryInputProps {
   onGenerateQuery: (query: string) => void;
@@ -29,13 +30,16 @@ const QueryInput: React.FC<QueryInputProps> = ({ onGenerateQuery, isGenerating, 
   return (
     <Card>
       <form onSubmit={handleSubmit}>
-        <CardHeader>
-          <CardTitle>Natural Language Query</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Brain size={18} className="text-purple-600" />
+            Natural Language Query
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Textarea
             placeholder="Describe what you want to query from the data in plain English. For example: 'Find all customers who made purchases last month' or 'Show me the average sales by product category'"
-            className="min-h-[120px]"
+            className="min-h-[120px] focus-visible:ring-purple-500"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

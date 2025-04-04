@@ -4,8 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Book } from 'lucide-react';
+import { Book, Info, ArrowRight } from 'lucide-react';
 import { toast } from '@/lib/toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PredefinedQuery {
   id: string;
@@ -46,7 +47,13 @@ const PredefinedQueries: React.FC<PredefinedQueriesProps> = ({ onSelectQuery }) 
   if (loading) {
     return (
       <Card className="mt-4">
-        <CardContent className="pt-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Book size={18} className="text-purple-600" />
+            Sample Queries
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="flex justify-center items-center py-8">
             <p className="text-gray-500">Loading predefined queries...</p>
           </div>
@@ -60,7 +67,7 @@ const PredefinedQueries: React.FC<PredefinedQueriesProps> = ({ onSelectQuery }) 
   }
 
   return (
-    <Card className="mt-4">
+    <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Book size={18} className="text-purple-600" />
@@ -75,16 +82,31 @@ const PredefinedQueries: React.FC<PredefinedQueriesProps> = ({ onSelectQuery }) 
                 <h3 className="font-medium text-sm">{query.title}</h3>
                 <Badge variant="outline" className="text-xs">Example</Badge>
               </div>
+              
               {query.description && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{query.description}</p>
+                <div className="flex items-start gap-1.5 mb-3">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info size={14} className="text-gray-500 shrink-0 mt-0.5" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">{query.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                    {query.description}
+                  </p>
+                </div>
               )}
+              
               <Button 
-                variant="outline" 
+                variant="ghost" 
                 size="sm" 
                 onClick={() => onSelectQuery(query.query_text)}
-                className="text-xs mt-2"
+                className="text-xs mt-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-950 w-full justify-between"
               >
-                Use This Query
+                <span>Use This Query</span>
+                <ArrowRight size={14} />
               </Button>
             </div>
           ))}
