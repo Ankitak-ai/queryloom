@@ -1,13 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { parseCSV, inferDataTypes, generateTableSchema } from '@/utils/csvParser';
+import { parseCSV, inferDataTypes } from '@/utils/csvParser';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import FileUpload from '@/components/FileUpload';
 import DatasetPreview from '@/components/DatasetPreview';
 import QueryInput from '@/components/QueryInput';
 import SqlDisplay from '@/components/SqlDisplay';
 import VisitorStats from '@/components/VisitorStats';
+import PredefinedQueries from '@/components/PredefinedQueries';
+import UserQueries from '@/components/UserQueries';
+import AppHeader from '@/components/AppHeader';
 import { toast } from '@/lib/toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Brain } from 'lucide-react';
 import { trackPageVisit } from '@/utils/trackPageVisit';
 
@@ -23,6 +27,8 @@ const Index = () => {
   const [generatedSql, setGeneratedSql] = useState<string>('');
   const [sqlExplanation, setSqlExplanation] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [naturalLanguageQuery, setNaturalLanguageQuery] = useState<string>('');
+  const { user } = useAuth();
 
   useEffect(() => {
     // Track page visit when component mounts
@@ -73,6 +79,7 @@ const Index = () => {
     }
     
     setIsGenerating(true);
+    setNaturalLanguageQuery(query);
     
     try {
       const schemaInfo = datasets.map(dataset => {
@@ -95,12 +102,17 @@ const Index = () => {
       if (data && data.sql) {
         setGeneratedSql(data.sql);
         setSqlExplanation(data.explanation || '');
+        
+        // Save query to user's history if logged in
+        if (user) {
+          await saveUserQuery(query);
+        }
       } else if (data && data.error) {
         throw new Error(data.error);
       } else {
         throw new Error('Failed to generate SQL query');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating SQL query:', error);
       toast.error(`Failed to generate SQL query: ${error.message}`);
     } finally {
@@ -108,9 +120,27 @@ const Index = () => {
     }
   };
 
+  const saveUserQuery = async (queryText: string) => {
+    try {
+      await supabase.from('user_queries').insert({
+        user_id: user?.id,
+        query_text: queryText
+      });
+    } catch (error) {
+      console.error('Error saving user query:', error);
+      // Don't show a toast error for this since it's a background operation
+    }
+  };
+
+  const handleSelectPredefinedQuery = (query: string) => {
+    setNaturalLanguageQuery(query);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950 py-8">
-      <div className="container px-4 mx-auto max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
+      <AppHeader />
+      
+      <div className="container px-4 mx-auto max-w-6xl py-8">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Brain className="h-8 w-8 text-purple-600" />
@@ -135,21 +165,34 @@ const Index = () => {
         <div className="grid gap-8">
           <FileUpload onFilesUploaded={handleFilesUploaded} />
           
-          {datasets.length > 0 && (
-            <DatasetPreview datasets={datasets} />
-          )}
-          
-          <QueryInput 
-            onGenerateQuery={handleGenerateQuery}
-            isGenerating={isGenerating}
-          />
-          
-          {generatedSql && (
-            <SqlDisplay 
-              sql={generatedSql} 
-              explanation={sqlExplanation}
-            />
-          )}
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              {datasets.length > 0 && (
+                <DatasetPreview datasets={datasets} />
+              )}
+              
+              <QueryInput 
+                onGenerateQuery={handleGenerateQuery}
+                isGenerating={isGenerating}
+                initialValue={naturalLanguageQuery}
+              />
+              
+              {generatedSql && (
+                <SqlDisplay 
+                  sql={generatedSql} 
+                  explanation={sqlExplanation}
+                />
+              )}
+            </div>
+            
+            <div className="space-y-6">
+              <PredefinedQueries onSelectQuery={handleSelectPredefinedQuery} />
+              <UserQueries 
+                onSelectQuery={handleSelectPredefinedQuery} 
+                onQueryGenerated={naturalLanguageQuery}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

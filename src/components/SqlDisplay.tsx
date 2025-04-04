@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -182,7 +183,7 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
   }
   
   return (
-    <Card className="w-full border-t-4 border-t-purple-500 shadow-lg">
+    <Card className="w-full border-t-4 border-t-purple-500 shadow-lg mt-6">
       <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
         <div className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-purple-600" />

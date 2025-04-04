@@ -33,6 +33,51 @@ export type Database = {
         }
         Relationships: []
       }
+      predefined_queries: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          query_text: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          query_text: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          query_text?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      user_queries: {
+        Row: {
+          created_at: string
+          id: string
+          query_text: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          query_text: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          query_text?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       visits: {
         Row: {
           id: string

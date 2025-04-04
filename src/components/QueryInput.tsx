@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,11 +7,18 @@ import { Textarea } from '@/components/ui/textarea';
 interface QueryInputProps {
   onGenerateQuery: (query: string) => void;
   isGenerating: boolean;
+  initialValue?: string;
 }
 
-const QueryInput: React.FC<QueryInputProps> = ({ onGenerateQuery, isGenerating }) => {
-  const [query, setQuery] = useState('');
+const QueryInput: React.FC<QueryInputProps> = ({ onGenerateQuery, isGenerating, initialValue = '' }) => {
+  const [query, setQuery] = useState(initialValue);
   
+  useEffect(() => {
+    if (initialValue) {
+      setQuery(initialValue);
+    }
+  }, [initialValue]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim().length > 0) {
@@ -36,7 +43,7 @@ const QueryInput: React.FC<QueryInputProps> = ({ onGenerateQuery, isGenerating }
         <CardFooter className="flex justify-end">
           <Button 
             type="submit" 
-            className="bg-blue-500 hover:bg-blue-600"
+            className="bg-purple-600 hover:bg-purple-700"
             disabled={query.trim().length === 0 || isGenerating}
           >
             {isGenerating ? 'Generating...' : 'Generate SQL Query'}
