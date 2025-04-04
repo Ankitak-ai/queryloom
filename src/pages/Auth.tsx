@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -60,6 +61,8 @@ const Auth = () => {
         toast.error(error.message);
       } else {
         toast.success('Registration successful! Please check your email for confirmation.');
+        // Automatically redirect user to main page after successful signup
+        navigate('/');
       }
     } catch (error: any) {
       toast.error(error.message || 'An error occurred during sign up');
