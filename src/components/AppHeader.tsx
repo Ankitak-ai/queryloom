@@ -9,6 +9,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 
+interface UserProfile {
+  id: string;
+  username: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const AppHeader: React.FC = () => {
   const { user, signOut } = useAuth();
   const [username, setUsername] = useState<string | null>(null);
@@ -21,9 +28,11 @@ const AppHeader: React.FC = () => {
     if (user) {
       const fetchUsername = async () => {
         try {
-          // Use a raw query to get around TypeScript limitations
           const { data, error } = await supabase
-            .rpc('get_user_profile', { user_id: user.id });
+            .rpc('get_user_profile', { user_id: user.id }) as {
+              data: UserProfile[] | null;
+              error: Error | null;
+            };
             
           if (!error && data && data.length > 0) {
             setUsername(data[0].username);

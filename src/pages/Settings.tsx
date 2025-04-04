@@ -20,16 +20,25 @@ const formSchema = z.object({
 });
 
 // Define the profile type
-interface Profile {
+interface UserProfile {
   id: string;
   username: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface UsernameExistsResult {
+  username_exists: boolean;
 }
 
 const Settings = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [profile, setProfile] = useState<Profile>({
+  const [profile, setProfile] = useState<{
+    id: string;
+    username: string | null;
+  }>({
     id: '',
     username: null
   });
@@ -49,14 +58,16 @@ const Settings = () => {
 
     const fetchUserProfile = async () => {
       try {
-        // Use a raw query to get around TypeScript limitations
         const { data, error } = await supabase
-          .rpc('get_user_profile', { user_id: user.id });
+          .rpc('get_user_profile', { user_id: user.id }) as {
+            data: UserProfile[] | null;
+            error: Error | null;
+          };
 
         if (error) throw error;
         
         if (data && data.length > 0) {
-          const profileData: Profile = {
+          const profileData = {
             id: user.id,
             username: data[0].username
           };
@@ -85,11 +96,14 @@ const Settings = () => {
         .rpc('check_username_exists', { 
           username_to_check: values.username,
           exclude_user_id: user.id 
-        });
+        }) as {
+          data: UsernameExistsResult[] | null;
+          error: Error | null;
+        };
 
       if (checkError) throw checkError;
       
-      if (existingUsers && existingUsers.length > 0 && existingUsers[0].exists) {
+      if (existingUsers && existingUsers.length > 0 && existingUsers[0].username_exists) {
         form.setError('username', { 
           type: 'manual', 
           message: 'This username is already taken' 
@@ -103,7 +117,10 @@ const Settings = () => {
         .rpc('update_user_profile', { 
           user_id: user.id,
           new_username: values.username
-        });
+        }) as {
+          data: null;
+          error: Error | null;
+        };
 
       if (error) throw error;
       
