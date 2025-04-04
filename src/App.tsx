@@ -7,11 +7,21 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Protected route component that redirects to Index if authenticated
+// Protected route component that redirects to Auth if not authenticated
+const ProtectedRoute = ({ element }: { element: React.ReactNode }) => {
+  // We'll use a session check from localStorage as a quick check before the full auth context loads
+  const hasSession = !!localStorage.getItem('supabase.auth.token');
+  
+  // If there's no session, redirect to the auth page
+  return hasSession ? element : <Navigate to="/auth" replace />;
+};
+
+// Auth route component that redirects to Index if authenticated
 const AuthRoute = ({ element }: { element: React.ReactNode }) => {
   // We'll use a session check from localStorage as a quick check before the full auth context loads
   const hasSession = !!localStorage.getItem('supabase.auth.token');
@@ -30,6 +40,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthRoute element={<Auth />} />} />
+            <Route path="/settings" element={<ProtectedRoute element={<Settings />} />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
