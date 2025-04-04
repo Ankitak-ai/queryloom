@@ -1,8 +1,7 @@
-
 import React, { useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, Brain, Code, ExternalLink } from 'lucide-react';
+import { Copy, Brain, Code, ExternalLink, List } from 'lucide-react';
 import { toast } from '@/lib/toast';
 
 interface SqlDisplayProps {
@@ -28,6 +27,87 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
     window.open(`https://supabase.com/dashboard/project/vsevsjvtrshgeiudrnth/sql/new?query=${encodedSql}`, '_blank');
     
     toast.success('Opening SQL Editor in Supabase');
+  };
+  
+  const formatExplanation = (text: string) => {
+    if (!text) return null;
+
+    // Split by numbered points if they exist
+    const sections = text.split(/(\d+\.\s+\*\*[\w\s]+:?\*\*)/g);
+    
+    if (sections.length > 1) {
+      return (
+        <div className="space-y-4">
+          {sections.map((section, index) => {
+            if (section.match(/^\d+\.\s+\*\*[\w\s]+:?\*\*/)) {
+              // This is a section header
+              return (
+                <h4 key={index} className="text-base font-semibold text-purple-700 dark:text-purple-300 mt-4">
+                  {section.replace(/\*\*/g, '')}
+                </h4>
+              );
+            } else if (section.trim()) {
+              // This is content
+              return (
+                <p key={index} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed pl-4 border-l-2 border-purple-200 dark:border-purple-800">
+                  {formatBoldText(section)}
+                </p>
+              );
+            }
+            return null;
+          })}
+        </div>
+      );
+    }
+    
+    // If no numbered sections, check for dash-prefixed bullet points
+    const bulletPoints = text.split(/(-\s+\*\*[\w\s]+:?\*\*)/g);
+    if (bulletPoints.length > 1) {
+      return (
+        <div className="space-y-2">
+          {bulletPoints.map((point, index) => {
+            if (point.match(/-\s+\*\*[\w\s]+:?\*\*/)) {
+              return (
+                <div key={index} className="flex items-start gap-2 mt-2">
+                  <List className="h-4 w-4 text-purple-600 mt-1 flex-shrink-0" />
+                  <h4 className="text-base font-semibold text-purple-700 dark:text-purple-300">
+                    {point.replace(/-\s+\*\*|\*\*/g, '')}
+                  </h4>
+                </div>
+              );
+            } else if (point.trim()) {
+              return (
+                <p key={index} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed pl-6 ml-4">
+                  {formatBoldText(point)}
+                </p>
+              );
+            }
+            return null;
+          })}
+        </div>
+      );
+    }
+    
+    // Otherwise, just apply paragraph styling with some enhancements
+    return (
+      <div className="space-y-4">
+        {text.split('\n\n').map((paragraph, index) => (
+          <p key={index} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+            {formatBoldText(paragraph)}
+          </p>
+        ))}
+      </div>
+    );
+  };
+  
+  const formatBoldText = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index} className="text-purple-800 dark:text-purple-300">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
   };
   
   if (!sql) {
@@ -75,11 +155,11 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
         
         {explanation && (
           <div className="mt-4 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-md p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-4">
               <Brain className="h-4 w-4 text-purple-600" />
               <h3 className="text-sm font-medium text-purple-800 dark:text-purple-300">AI Reasoning Explanation</h3>
             </div>
-            <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{explanation}</p>
+            {formatExplanation(explanation)}
           </div>
         )}
       </CardContent>

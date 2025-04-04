@@ -67,7 +67,18 @@ ${sampleDataSection.length > 0 ? sampleDataSection + '\n\n' : ''}
 
 Convert this request into an optimized SQL query: ${query}
 
-First generate the SQL query, then provide a detailed explanation of how the query works and why you made the specific choices in its design.`
+First generate the SQL query, then provide a detailed explanation of how the query works and why you made the specific choices in its design.
+
+Your explanation should:
+1. **Use Markdown formatting** with section headers using numbered points
+2. **Bold important terms and concepts** using ** around the text
+3. **Structure your explanation clearly** with the following sections:
+   - Query Strategy: Overview of the approach
+   - Step-by-Step Breakdown: Explain each component
+   - Optimization Choices: Why this approach is efficient
+   - Expected Results: What the query will return
+
+Keep your explanation thorough but well-structured for easy reading.`
         }
       ],
       temperature: 0.4,
