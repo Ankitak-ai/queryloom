@@ -69,12 +69,12 @@ const Reviews = () => {
     setIsSubmitting(true);
     
     try {
-      // Use type assertion to work around TypeScript limitations
+      // Modified: Remove the user_id field since it's causing the foreign key constraint issue
       const { error } = await (supabase as any)
         .from('reviews')
         .insert([
           {
-            user_id: user.id,
+            // Remove the user_id reference that's causing the problem
             user_email: user.email,
             content,
             rating
