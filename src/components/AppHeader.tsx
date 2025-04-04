@@ -20,14 +20,16 @@ const AppHeader: React.FC = () => {
   useEffect(() => {
     if (user) {
       const fetchUsername = async () => {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', user.id)
-          .single();
-          
-        if (!error && data) {
-          setUsername(data.username);
+        try {
+          // Use a raw query to get around TypeScript limitations
+          const { data, error } = await supabase
+            .rpc('get_user_profile', { user_id: user.id });
+            
+          if (!error && data && data.length > 0) {
+            setUsername(data[0].username);
+          }
+        } catch (error) {
+          console.error("Error fetching username:", error);
         }
       };
       

@@ -19,11 +19,17 @@ const formSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters").max(50, "Username must be less than 50 characters")
 });
 
+// Define the profile type
+interface Profile {
+  id: string;
+  username: string | null;
+}
+
 const Settings = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [profile, setProfile] = useState<{id: string, username: string | null}>({
+  const [profile, setProfile] = useState<Profile>({
     id: '',
     username: null
   });
@@ -43,18 +49,21 @@ const Settings = () => {
 
     const fetchUserProfile = async () => {
       try {
+        // Use a raw query to get around TypeScript limitations
         const { data, error } = await supabase
-          .from('profiles')
-          .select('id, username')
-          .eq('id', user.id)
-          .single();
+          .rpc('get_user_profile', { user_id: user.id });
 
         if (error) throw error;
         
-        if (data) {
-          setProfile(data);
+        if (data && data.length > 0) {
+          const profileData: Profile = {
+            id: user.id,
+            username: data[0].username
+          };
+          
+          setProfile(profileData);
           form.reset({
-            username: data.username || '',
+            username: profileData.username || '',
           });
         }
       } catch (error: any) {
@@ -72,31 +81,29 @@ const Settings = () => {
 
     try {
       // Check if username is already taken (except by the current user)
-      const { data: existingUser, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', values.username)
-        .neq('id', user.id)
-        .maybeSingle();
+      const { data: existingUsers, error: checkError } = await supabase
+        .rpc('check_username_exists', { 
+          username_to_check: values.username,
+          exclude_user_id: user.id 
+        });
 
       if (checkError) throw checkError;
       
-      if (existingUser) {
+      if (existingUsers && existingUsers.length > 0 && existingUsers[0].exists) {
         form.setError('username', { 
           type: 'manual', 
           message: 'This username is already taken' 
         });
+        setIsLoading(false);
         return;
       }
 
-      // Update the user profile
+      // Update the user profile using a stored procedure
       const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          username: values.username,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+        .rpc('update_user_profile', { 
+          user_id: user.id,
+          new_username: values.username
+        });
 
       if (error) throw error;
       
