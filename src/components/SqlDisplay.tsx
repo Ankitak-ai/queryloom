@@ -2,7 +2,7 @@
 import React, { useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, Brain, Code } from 'lucide-react';
+import { Copy, Brain, Code, ExternalLink } from 'lucide-react';
 import { toast } from '@/lib/toast';
 
 interface SqlDisplayProps {
@@ -19,6 +19,16 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
       toast.success('SQL query copied to clipboard');
     }
   };
+
+  const openInSupabase = () => {
+    // Encode the SQL query for URL
+    const encodedSql = encodeURIComponent(sql);
+    
+    // Open Supabase SQL Editor with the pre-filled query
+    window.open(`https://supabase.com/dashboard/project/vsevsjvtrshgeiudrnth/sql/new?query=${encodedSql}`, '_blank');
+    
+    toast.success('Opening SQL Editor in Supabase');
+  };
   
   if (!sql) {
     return null;
@@ -31,9 +41,26 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
           <Brain className="h-5 w-5 text-purple-600" />
           <CardTitle className="text-xl">DeepSeek R1 Generated SQL</CardTitle>
         </div>
-        <Button variant="outline" size="icon" onClick={copyToClipboard} title="Copy SQL" className="hover:bg-purple-100 dark:hover:bg-purple-900">
-          <Copy className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={openInSupabase} 
+            title="Run in Supabase" 
+            className="hover:bg-purple-100 dark:hover:bg-purple-900"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={copyToClipboard} 
+            title="Copy SQL" 
+            className="hover:bg-purple-100 dark:hover:bg-purple-900"
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4 p-6">
         <div className="bg-gray-900 rounded-md p-4 overflow-x-auto shadow-inner border border-purple-200 dark:border-purple-900">
@@ -59,7 +86,18 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
       <CardFooter className="text-xs text-gray-500 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 p-4">
         <div className="flex items-center gap-2 w-full justify-between">
           <p>Powered by DeepSeek R1 Reasoning Model</p>
-          <p className="italic">AI-generated SQL query ready for your database</p>
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="link" 
+              className="h-auto p-0 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-200"
+              onClick={openInSupabase}
+            >
+              <span className="inline-flex items-center">
+                Run in Supabase SQL Editor
+                <ExternalLink className="ml-1 h-3 w-3" />
+              </span>
+            </Button>
+          </div>
         </div>
       </CardFooter>
     </Card>
