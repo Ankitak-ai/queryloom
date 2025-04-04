@@ -83,25 +83,19 @@ export type Database = {
           content: string
           created_at: string
           id: string
-          rating: number
-          user_email: string
-          user_id: string | null
+          name: string
         }
         Insert: {
           content: string
           created_at?: string
           id?: string
-          rating: number
-          user_email: string
-          user_id?: string | null
+          name: string
         }
         Update: {
           content?: string
           created_at?: string
           id?: string
-          rating?: number
-          user_email?: string
-          user_id?: string | null
+          name?: string
         }
         Relationships: []
       }

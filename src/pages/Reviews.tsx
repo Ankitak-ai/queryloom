@@ -1,30 +1,28 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import AppHeader from '@/components/AppHeader';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, StarHalf, StarOff, MessageSquare } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { MessageSquare } from 'lucide-react';
 import { toast } from '@/lib/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ReviewItem from '@/components/ReviewItem';
 
 interface Review {
   id: string;
-  user_email: string;
+  name: string;
   content: string;
-  rating: number;
   created_at: string;
 }
 
 const Reviews = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [name, setName] = useState('');
   const [content, setContent] = useState('');
-  const [rating, setRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
   
   useEffect(() => {
     fetchReviews();
@@ -32,8 +30,7 @@ const Reviews = () => {
   
   const fetchReviews = async () => {
     try {
-      // Use type assertion to work around TypeScript limitations
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('reviews')
         .select('*')
         .order('created_at', { ascending: false });
@@ -46,13 +43,9 @@ const Reviews = () => {
     }
   };
   
-  const handleRatingClick = (value: number) => {
-    setRating(value);
-  };
-  
   const handleSubmitReview = async () => {
-    if (!user) {
-      toast.error('Please sign in to leave a review');
+    if (name.trim() === '') {
+      toast.error('Please enter your name');
       return;
     }
     
@@ -61,31 +54,23 @@ const Reviews = () => {
       return;
     }
     
-    if (rating === 0) {
-      toast.error('Please select a rating');
-      return;
-    }
-    
     setIsSubmitting(true);
     
     try {
-      // Modified: Remove the user_id field since it's causing the foreign key constraint issue
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('reviews')
         .insert([
           {
-            // Remove the user_id reference that's causing the problem
-            user_email: user.email,
-            content,
-            rating
+            name,
+            content
           }
         ]);
         
       if (error) throw error;
       
       toast.success('Review submitted successfully');
+      setName('');
       setContent('');
-      setRating(0);
       fetchReviews();
     } catch (error: any) {
       console.error('Error submitting review:', error.message);
@@ -93,27 +78,6 @@ const Reviews = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-  
-  const renderStars = (value: number) => {
-    return (
-      <div className="flex">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            type="button"
-            onClick={() => handleRatingClick(star)}
-            className="focus:outline-none"
-          >
-            {rating >= star ? (
-              <Star className="w-6 h-6 text-yellow-500" />
-            ) : (
-              <StarOff className="w-6 h-6 text-gray-300" />
-            )}
-          </button>
-        ))}
-      </div>
-    );
   };
   
   return (
@@ -164,8 +128,12 @@ const Reviews = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <div className="text-sm font-medium mb-2">Rating</div>
-                  {renderStars(rating)}
+                  <div className="text-sm font-medium mb-2">Your Name</div>
+                  <Input
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </div>
                 <div>
                   <div className="text-sm font-medium mb-2">Your Review</div>
