@@ -18,6 +18,7 @@ interface DatasetFile {
 const Index = () => {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
   const [generatedSql, setGeneratedSql] = useState<string>('');
+  const [sqlExplanation, setSqlExplanation] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
   const handleFilesUploaded = async (files: File[]) => {
@@ -88,6 +89,7 @@ const Index = () => {
       
       if (data && data.sql) {
         setGeneratedSql(data.sql);
+        setSqlExplanation(data.explanation || '');
       } else if (data && data.error) {
         throw new Error(data.error);
       } else {
@@ -124,7 +126,10 @@ const Index = () => {
           />
           
           {generatedSql && (
-            <SqlDisplay sql={generatedSql} />
+            <SqlDisplay 
+              sql={generatedSql} 
+              explanation={sqlExplanation}
+            />
           )}
         </div>
       </div>

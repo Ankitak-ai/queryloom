@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import OpenAI from "https://esm.sh/openai@4.20.1";
 
@@ -67,7 +66,7 @@ ${sampleDataSection.length > 0 ? sampleDataSection + '\n\n' : ''}
 
 Convert this request into an optimized SQL query: ${query}
 
-Respond ONLY with the SQL query, no explanations or commentary.`
+First generate the SQL query, then provide a brief explanation of how the query works.`
         }
       ],
       temperature: 0.4,
@@ -75,15 +74,49 @@ Respond ONLY with the SQL query, no explanations or commentary.`
       max_tokens: 512
     });
 
-    let generatedSql = completion.choices[0]?.message?.content || '';
+    let fullResponse = completion.choices[0]?.message?.content || '';
+    console.log("Full AI response:", fullResponse);
     
-    // Remove unwanted "<think>" section if present
-    generatedSql = generatedSql.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+    // Extract the SQL query - find the first SQL-like pattern
+    const sqlPattern = /```sql\s*([\s\S]*?)```|(?:^|\n)(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|WITH)[\s\S]*?(?:;|$)|^(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|WITH)[\s\S]*?(?:;|$)/i;
+    const sqlMatch = fullResponse.match(sqlPattern);
     
-    console.log("Generated SQL:", generatedSql);
+    let generatedSql = '';
+    let explanation = '';
+    
+    if (sqlMatch) {
+      // If it's in a code block, use the content of the code block
+      if (sqlMatch[1]) {
+        generatedSql = sqlMatch[1].trim();
+      } 
+      // Otherwise use the matched SQL statement
+      else if (sqlMatch[2]) {
+        generatedSql = sqlMatch[0].trim();
+      }
+      else if (sqlMatch[3]) {
+        generatedSql = sqlMatch[0].trim();
+      }
+      
+      // Try to extract explanation - anything after the SQL
+      const afterSql = fullResponse.substring(fullResponse.indexOf(sqlMatch[0]) + sqlMatch[0].length).trim();
+      if (afterSql) {
+        explanation = afterSql
+          .replace(/<think>[\s\S]*?<\/think>/g, '') // Remove any think blocks
+          .trim();
+      }
+    } else {
+      // If no SQL pattern found, remove think blocks and use as SQL
+      generatedSql = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+    }
+    
+    console.log("Extracted SQL:", generatedSql);
+    console.log("Explanation:", explanation);
     
     return new Response(
-      JSON.stringify({ sql: generatedSql }),
+      JSON.stringify({ 
+        sql: generatedSql,
+        explanation: explanation 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
