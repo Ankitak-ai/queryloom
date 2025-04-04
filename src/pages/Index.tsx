@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { parseCSV, inferDataTypes, generateTableSchema } from '@/utils/csvParser';
 import FileUpload from '@/components/FileUpload';
 import DatasetPreview from '@/components/DatasetPreview';
 import QueryInput from '@/components/QueryInput';
 import SqlDisplay from '@/components/SqlDisplay';
+import VisitorStats from '@/components/VisitorStats';
 import { toast } from '@/lib/toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Brain } from 'lucide-react';
+import { trackPageVisit } from '@/utils/trackPageVisit';
 
 interface DatasetFile {
   file: File;
@@ -20,6 +23,11 @@ const Index = () => {
   const [generatedSql, setGeneratedSql] = useState<string>('');
   const [sqlExplanation, setSqlExplanation] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Track page visit when component mounts
+    trackPageVisit('/');
+  }, []);
 
   const handleFilesUploaded = async (files: File[]) => {
     const newDatasets: DatasetFile[] = [];
@@ -116,6 +124,11 @@ const Index = () => {
           </p>
           <div className="mt-2 inline-flex items-center justify-center px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
             Advanced AI reasoning for precise SQL generation
+          </div>
+          
+          {/* Add visitor stats */}
+          <div className="mt-4 flex justify-center">
+            <VisitorStats />
           </div>
         </div>
         

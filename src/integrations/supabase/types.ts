@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      page_visits: {
+        Row: {
+          id: string
+          ip_address: string
+          page_path: string
+          user_agent: string | null
+          visited_at: string | null
+        }
+        Insert: {
+          id?: string
+          ip_address: string
+          page_path: string
+          user_agent?: string | null
+          visited_at?: string | null
+        }
+        Update: {
+          id?: string
+          ip_address?: string
+          page_path?: string
+          user_agent?: string | null
+          visited_at?: string | null
+        }
+        Relationships: []
+      }
       visits: {
         Row: {
           id: string
@@ -35,6 +59,22 @@ export type Database = {
       create_visits_table: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      get_page_visitor_stats: {
+        Args: {
+          page: string
+        }
+        Returns: {
+          total_visits: number
+          unique_visitors: number
+        }[]
+      }
+      get_visitor_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_visits: number
+          unique_visitors: number
+        }[]
       }
     }
     Enums: {
