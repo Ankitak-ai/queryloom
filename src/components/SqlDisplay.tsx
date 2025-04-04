@@ -1,8 +1,7 @@
-
 import React, { useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, Brain, Code, ExternalLink, List } from 'lucide-react';
+import { Copy, Brain, Code } from 'lucide-react';
 import { toast } from '@/lib/toast';
 
 interface SqlDisplayProps {
@@ -19,28 +18,16 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
       toast.success('SQL query copied to clipboard');
     }
   };
-
-  const openInSupabase = () => {
-    // Encode the SQL query for URL
-    const encodedSql = encodeURIComponent(sql);
-    
-    // Open Supabase SQL Editor with the pre-filled query
-    window.open(`https://supabase.com/dashboard/project/vsevsjvtrshgeiudrnth/sql/new?query=${encodedSql}`, '_blank');
-    
-    toast.success('Opening SQL Editor in Supabase');
-  };
   
   const formatExplanation = (text: string) => {
     if (!text) return null;
 
-    // Split the explanation into sections based on markdown headings
     const sections = text.split(/###\s+([\d\.]+\s+[^#\n]+)/g);
     
     if (sections.length > 1) {
       return (
         <div className="space-y-4">
           {sections.map((section, index) => {
-            // This is a section header
             if (index % 2 === 1) {
               return (
                 <h3 key={index} className="text-base font-semibold text-purple-700 dark:text-purple-300 mt-6 border-b border-purple-100 dark:border-purple-800 pb-1">
@@ -48,16 +35,13 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
                 </h3>
               );
             } 
-            // This is section content
             else if (index > 0 && section.trim()) {
-              // Process subsections (like "a. Subquery")
               const subsections = section.split(/####\s+([a-z]\.+\s+[^#\n]+)/g);
               
               if (subsections.length > 1) {
                 return (
                   <div key={index} className="space-y-3">
                     {subsections.map((subsection, subIndex) => {
-                      // This is a subsection header
                       if (subIndex % 2 === 1) {
                         return (
                           <h4 key={`${index}-${subIndex}`} className="text-sm font-semibold text-purple-600 dark:text-purple-400 mt-4">
@@ -65,7 +49,6 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
                           </h4>
                         );
                       } 
-                      // This is subsection content
                       else if (subIndex > 0 && subsection.trim()) {
                         return (
                           <div key={`${index}-${subIndex}`} className="pl-4 border-l-2 border-purple-100 dark:border-purple-900">
@@ -73,7 +56,6 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
                           </div>
                         );
                       }
-                      // First subsection (before any #### header)
                       else if (subIndex === 0 && subsection.trim()) {
                         return formatContent(subsection, `${index}-${subIndex}`);
                       }
@@ -82,7 +64,6 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
                   </div>
                 );
               } else {
-                // No subsections, just format the content
                 return formatContent(section, index);
               }
             }
@@ -92,24 +73,20 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
       );
     }
     
-    // If no sections found, format as regular content
     return formatContent(text);
   };
   
   const formatContent = (content: string, key?: string | number) => {
     if (!content.trim()) return null;
     
-    // Handle code blocks within the explanation
     const parts = content.split(/```sql\s*([\s\S]*?)```/g);
     
-    // Handle numbered lists (1., 2., etc)
     const processNumberedLists = (text: string) => {
       const listItems = text.split(/(\d+\.\s+)/g);
       if (listItems.length > 2) {
         return (
           <ul className="list-decimal pl-6 space-y-2 my-3">
             {listItems.map((item, idx) => {
-              // If it's a list marker (1., 2., etc)
               if (idx % 2 === 1) {
                 const nextItem = listItems[idx + 1] || '';
                 return (
@@ -118,7 +95,6 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
                   </li>
                 );
               }
-              // If it's the first part before any list items
               else if (idx === 0 && item.trim()) {
                 return (
                   <div key={idx} className="mb-2">
@@ -137,7 +113,6 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
     return (
       <div key={key} className="text-sm text-gray-700 dark:text-gray-300 space-y-3">
         {parts.map((part, partIndex) => {
-          // This is SQL code inside ```sql ```
           if (partIndex % 2 === 1) {
             return (
               <div key={partIndex} className="bg-gray-800 rounded p-3 my-3 text-green-400 font-mono text-xs overflow-x-auto">
@@ -145,7 +120,6 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
               </div>
             );
           } 
-          // This is regular text, process for numbered lists and formatting
           else if (part.trim()) {
             const paragraphs = part.split(/\n\n+/);
             return (
@@ -159,7 +133,6 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
                         </div>
                       );
                     } else if (para.includes('-')) {
-                      // Handle bullet points
                       const bulletItems = para.split(/\n\s*-\s+/);
                       if (bulletItems.length > 1) {
                         return (
@@ -219,15 +192,6 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
           <Button 
             variant="outline" 
             size="icon" 
-            onClick={openInSupabase} 
-            title="Run in Supabase" 
-            className="hover:bg-purple-100 dark:hover:bg-purple-900"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
             onClick={copyToClipboard} 
             title="Copy SQL" 
             className="hover:bg-purple-100 dark:hover:bg-purple-900"
@@ -258,20 +222,8 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation }) => {
         )}
       </CardContent>
       <CardFooter className="text-xs text-gray-500 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="flex items-center gap-2 w-full justify-between">
+        <div className="flex items-center gap-2 w-full">
           <p>Powered by DeepSeek R1 Reasoning Model</p>
-          <div className="flex items-center gap-1">
-            <Button 
-              variant="link" 
-              className="h-auto p-0 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-200"
-              onClick={openInSupabase}
-            >
-              <span className="inline-flex items-center">
-                Run in Supabase SQL Editor
-                <ExternalLink className="ml-1 h-3 w-3" />
-              </span>
-            </Button>
-          </div>
         </div>
       </CardFooter>
     </Card>
