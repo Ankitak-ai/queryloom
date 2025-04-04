@@ -60,15 +60,20 @@ const FileUpload = ({ onFilesUploaded }: FileUploadProps) => {
     }
   }, [onFilesUploaded]);
   
+  const handleBoxClick = () => {
+    document.getElementById('fileInput')?.click();
+  };
+  
   return (
     <div 
-      className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
-        isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+      className={`border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer ${
+        isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
       }`}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      onClick={handleBoxClick}
     >
       <div className="flex flex-col items-center justify-center space-y-4">
         <div className="bg-blue-100 p-4 rounded-full">
@@ -83,9 +88,13 @@ const FileUpload = ({ onFilesUploaded }: FileUploadProps) => {
           accept=".csv"
           className="hidden"
           onChange={handleFileInputChange}
+          onClick={(e) => e.stopPropagation()} // Prevent double-trigger of click events
         />
         <Button 
-          onClick={() => document.getElementById('fileInput')?.click()}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent double-trigger
+            document.getElementById('fileInput')?.click();
+          }}
           className="bg-blue-500 hover:bg-blue-600"
         >
           Browse Files
