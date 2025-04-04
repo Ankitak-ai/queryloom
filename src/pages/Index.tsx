@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { parseCSV, inferDataTypes } from '@/utils/csvParser';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +25,9 @@ interface DatasetFile {
   rows: any[][];
   dataTypes: Record<string, string>;
 }
+
+// Import or define the constant here
+const QUERY_LIMIT_USER = 10;
 
 const Index = () => {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
