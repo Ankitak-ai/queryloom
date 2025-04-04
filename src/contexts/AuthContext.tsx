@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/lib/toast';
 
 interface AuthContextType {
   session: Session | null;
@@ -56,12 +57,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      });
+      
+      if (error) {
+        console.error('Google sign in error:', error);
+        toast.error(`Google sign in failed: ${error.message}`);
       }
-    });
+    } catch (error: any) {
+      console.error('Google sign in exception:', error);
+      toast.error(`Google sign in failed: ${error.message || 'Unknown error'}`);
+    }
   };
 
   const signOut = async () => {

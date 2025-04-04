@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,15 +7,29 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/lib/toast';
-import { Brain } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { Brain, Info } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+    
+    const hash = location.hash;
+    if (hash && hash.includes('error')) {
+      const params = new URLSearchParams(hash.substring(1));
+      const error = params.get('error_description') || 'Authentication failed';
+      toast.error(decodeURIComponent(error));
+    }
+  }, [location, user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +87,13 @@ const Auth = () => {
           <CardTitle className="text-2xl">AI SQL Query Builder</CardTitle>
           <CardDescription>Sign in to save your queries</CardDescription>
         </CardHeader>
+        
+        <Alert className="mx-6 mb-4 bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <AlertDescription className="text-xs text-blue-700 dark:text-blue-300">
+            If you're having trouble with Google sign-in, please make sure Google Auth is properly configured in Supabase.
+          </AlertDescription>
+        </Alert>
         
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
