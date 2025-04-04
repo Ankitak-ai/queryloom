@@ -20,15 +20,29 @@ const Auth = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // If user is already authenticated, redirect to main page
     if (user) {
       navigate('/');
+      return;
     }
     
+    // Check if we have hash params from email confirmation
     const hash = location.hash;
-    if (hash && hash.includes('error')) {
-      const params = new URLSearchParams(hash.substring(1));
-      const error = params.get('error_description') || 'Authentication failed';
-      toast.error(decodeURIComponent(error));
+    if (hash) {
+      // Handle auth redirect with tokens in URL
+      if (hash.includes('access_token') || hash.includes('error')) {
+        if (hash.includes('error')) {
+          const params = new URLSearchParams(hash.substring(1));
+          const error = params.get('error_description') || 'Authentication failed';
+          toast.error(decodeURIComponent(error));
+        } else {
+          // If we have an access token, it means the authentication was successful
+          // Supabase client will automatically handle the token
+          toast.success('Email confirmed successfully!');
+          // Navigate to home page after successful email confirmation
+          navigate('/');
+        }
+      }
     }
   }, [location, user, navigate]);
 
@@ -79,6 +93,23 @@ const Auth = () => {
       toast.error(error.message || 'An error occurred during Google sign in');
     }
   };
+
+  // If we're processing the redirect, don't show the login form
+  if (location.hash && (location.hash.includes('access_token') || location.hash.includes('error'))) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-2">
+              <Brain className="h-8 w-8 text-purple-600" />
+            </div>
+            <CardTitle className="text-2xl">Processing Authentication</CardTitle>
+            <CardDescription>Please wait while we confirm your authentication...</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950 p-4">
