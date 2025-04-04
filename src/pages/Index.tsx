@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { parseCSV, inferDataTypes, generateTableSchema } from '@/utils/csvParser';
 import FileUpload from '@/components/FileUpload';
@@ -7,6 +6,7 @@ import QueryInput from '@/components/QueryInput';
 import SqlDisplay from '@/components/SqlDisplay';
 import { toast } from '@/lib/toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Brain } from 'lucide-react';
 
 interface DatasetFile {
   file: File;
@@ -42,7 +42,6 @@ const Index = () => {
       }
     }
     
-    // Add new datasets or replace existing ones with same filename
     setDatasets(prev => {
       const existing = [...prev];
       
@@ -68,17 +67,15 @@ const Index = () => {
     setIsGenerating(true);
     
     try {
-      // Extract schema information for each dataset
       const schemaInfo = datasets.map(dataset => {
         return {
           tableName: dataset.file.name.replace(/\.csv$/, ''),
           columns: dataset.headers,
           dataTypes: dataset.dataTypes,
-          sample: dataset.rows.slice(0, 3) // Include a few sample rows for context
+          sample: dataset.rows.slice(0, 3)
         };
       });
       
-      // Call the Supabase Edge Function to generate the SQL query
       const { data, error } = await supabase.functions.invoke('generate-sql', {
         body: { query, schemaInfo }
       });
@@ -104,13 +101,22 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950 py-8">
       <div className="container px-4 mx-auto max-w-6xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">AI SQL Query Builder</h1>
-          <p className="text-gray-600 mt-2">
-            Upload your CSV datasets and get AI-generated SQL queries from natural language descriptions
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Brain className="h-8 w-8 text-purple-600" />
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-blue-500">
+              AI SQL Query Builder
+            </h1>
+          </div>
+          <p className="text-gray-600 dark:text-gray-300 mt-2 max-w-2xl mx-auto">
+            Upload your CSV datasets and get AI-generated SQL queries powered by the 
+            <span className="font-semibold text-purple-600 dark:text-purple-400"> DeepSeek R1 Reasoning Model</span>
           </p>
+          <div className="mt-2 inline-flex items-center justify-center px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+            Advanced AI reasoning for precise SQL generation
+          </div>
         </div>
         
         <div className="grid gap-8">
