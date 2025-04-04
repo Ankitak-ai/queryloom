@@ -32,7 +32,8 @@ const Reviews = () => {
   
   const fetchReviews = async () => {
     try {
-      const { data, error } = await supabase
+      // Use type assertion to work around TypeScript limitations
+      const { data, error } = await (supabase as any)
         .from('reviews')
         .select('*')
         .order('created_at', { ascending: false });
@@ -68,7 +69,8 @@ const Reviews = () => {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase
+      // Use type assertion to work around TypeScript limitations
+      const { error } = await (supabase as any)
         .from('reviews')
         .insert([
           {
