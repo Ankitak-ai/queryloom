@@ -89,9 +89,16 @@ Keep your explanation thorough but well-structured for easy reading.`
     let fullResponse = completion.choices[0]?.message?.content || '';
     console.log("Full AI response:", fullResponse);
     
+    // Extract content after </think> tag if present
+    let cleanedResponse = fullResponse;
+    const thinkTagIndex = fullResponse.lastIndexOf('</think>');
+    if (thinkTagIndex !== -1) {
+      cleanedResponse = fullResponse.substring(thinkTagIndex + 8).trim();
+    }
+    
     // Extract the SQL query - find the first SQL-like pattern
     const sqlPattern = /```sql\s*([\s\S]*?)```|(?:^|\n)(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|WITH)[\s\S]*?(?:;|$)|^(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|WITH)[\s\S]*?(?:;|$)/i;
-    const sqlMatch = fullResponse.match(sqlPattern);
+    const sqlMatch = cleanedResponse.match(sqlPattern);
     
     let generatedSql = '';
     let explanation = '';
@@ -110,7 +117,7 @@ Keep your explanation thorough but well-structured for easy reading.`
       }
       
       // Try to extract explanation - anything after the SQL
-      const afterSql = fullResponse.substring(fullResponse.indexOf(sqlMatch[0]) + sqlMatch[0].length).trim();
+      const afterSql = cleanedResponse.substring(cleanedResponse.indexOf(sqlMatch[0]) + sqlMatch[0].length).trim();
       if (afterSql) {
         explanation = afterSql
           .replace(/<think>[\s\S]*?<\/think>/g, '') // Remove any think blocks
@@ -118,7 +125,7 @@ Keep your explanation thorough but well-structured for easy reading.`
       }
     } else {
       // If no SQL pattern found, remove think blocks and use as SQL
-      generatedSql = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+      generatedSql = cleanedResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
     }
     
     console.log("Extracted SQL:", generatedSql);
