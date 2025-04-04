@@ -9,7 +9,8 @@ export const trackPageVisit = async (pagePath: string = '/') => {
     const { ip } = await response.json();
     
     // Insert the page visit
-    await supabase.from('page_visits').insert({
+    // Using type assertion to work around type checking for the new table
+    await (supabase.from('page_visits') as any).insert({
       page_path: pagePath,
       ip_address: ip,
       user_agent: navigator.userAgent || null

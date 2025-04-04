@@ -15,7 +15,8 @@ const VisitorStats: React.FC<VisitorStatsProps> = ({ className }) => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const { data, error } = await supabase.rpc('get_visitor_stats');
+        // Using type assertion to work around type checking for the new function
+        const { data, error } = await (supabase.rpc('get_visitor_stats') as any);
         if (error) throw error;
         setStats(data[0]);
       } catch (error) {
