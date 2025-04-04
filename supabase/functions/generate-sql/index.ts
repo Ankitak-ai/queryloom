@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import OpenAI from "https://esm.sh/openai@4.20.1";
 
@@ -66,12 +67,12 @@ ${sampleDataSection.length > 0 ? sampleDataSection + '\n\n' : ''}
 
 Convert this request into an optimized SQL query: ${query}
 
-First generate the SQL query, then provide a brief explanation of how the query works.`
+First generate the SQL query, then provide a detailed explanation of how the query works and why you made the specific choices in its design.`
         }
       ],
       temperature: 0.4,
       top_p: 0.7,
-      max_tokens: 512
+      max_tokens: 4096
     });
 
     let fullResponse = completion.choices[0]?.message?.content || '';
