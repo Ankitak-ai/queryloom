@@ -15,6 +15,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -74,9 +75,9 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       } else {
+        // Show registration complete message instead of redirecting
+        setRegistrationComplete(true);
         toast.success('Registration successful! Please check your email for confirmation.');
-        // Automatically redirect user to main page after successful signup
-        navigate('/');
       }
     } catch (error: any) {
       toast.error(error.message || 'An error occurred during sign up');
@@ -93,6 +94,42 @@ const Auth = () => {
       toast.error(error.message || 'An error occurred during Google sign in');
     }
   };
+
+  // Show registration complete message
+  if (registrationComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-2">
+              <Brain className="h-8 w-8 text-purple-600" />
+            </div>
+            <CardTitle className="text-2xl">Account Created!</CardTitle>
+            <CardDescription>Your account has been created successfully.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
+              <Info className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              <AlertDescription className="text-sm text-yellow-700 dark:text-yellow-300">
+                You may see a localhost error while confirming your email. If this happens, please come back and login with your credentials.
+              </AlertDescription>
+            </Alert>
+            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+              Please check your email for a confirmation link. After confirming your email, you can log in to your account.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              className="w-full bg-purple-700 hover:bg-purple-800" 
+              onClick={() => setRegistrationComplete(false)}
+            >
+              Return to Login
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   // If we're processing the redirect, don't show the login form
   if (location.hash && (location.hash.includes('access_token') || location.hash.includes('error'))) {
