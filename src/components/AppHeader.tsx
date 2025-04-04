@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,15 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Brain, LogIn, LogOut, User, Settings } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-
-interface UserProfile {
-  id: string;
-  username: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { getUserProfile } from '@/utils/supabaseHelpers';
 
 const AppHeader: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -28,11 +20,7 @@ const AppHeader: React.FC = () => {
     if (user) {
       const fetchUsername = async () => {
         try {
-          const { data, error } = await supabase
-            .rpc('get_user_profile', { user_id: user.id }) as {
-              data: UserProfile[] | null;
-              error: Error | null;
-            };
+          const { data, error } = await getUserProfile(user.id);
             
           if (!error && data && data.length > 0) {
             setUsername(data[0].username);

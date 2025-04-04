@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import AppHeader from '@/components/AppHeader';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,22 +12,11 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, For
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { getUserProfile, checkUsernameExists, updateUserProfile } from '@/utils/supabaseHelpers';
 
 const formSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters").max(50, "Username must be less than 50 characters")
 });
-
-// Define the profile type
-interface UserProfile {
-  id: string;
-  username: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface UsernameExistsResult {
-  username_exists: boolean;
-}
 
 const Settings = () => {
   const { user } = useAuth();
@@ -58,11 +45,7 @@ const Settings = () => {
 
     const fetchUserProfile = async () => {
       try {
-        const { data, error } = await supabase
-          .rpc('get_user_profile', { user_id: user.id }) as {
-            data: UserProfile[] | null;
-            error: Error | null;
-          };
+        const { data, error } = await getUserProfile(user.id);
 
         if (error) throw error;
         
@@ -92,14 +75,10 @@ const Settings = () => {
 
     try {
       // Check if username is already taken (except by the current user)
-      const { data: existingUsers, error: checkError } = await supabase
-        .rpc('check_username_exists', { 
-          username_to_check: values.username,
-          exclude_user_id: user.id 
-        }) as {
-          data: UsernameExistsResult[] | null;
-          error: Error | null;
-        };
+      const { data: existingUsers, error: checkError } = await checkUsernameExists(
+        values.username,
+        user.id
+      );
 
       if (checkError) throw checkError;
       
@@ -112,15 +91,8 @@ const Settings = () => {
         return;
       }
 
-      // Update the user profile using a stored procedure
-      const { error } = await supabase
-        .rpc('update_user_profile', { 
-          user_id: user.id,
-          new_username: values.username
-        }) as {
-          data: null;
-          error: Error | null;
-        };
+      // Update the user profile using our helper function
+      const { error } = await updateUserProfile(user.id, values.username);
 
       if (error) throw error;
       
@@ -134,7 +106,6 @@ const Settings = () => {
     }
   };
 
-  // If the user is not logged in, don't render the settings page
   if (!user) return null;
 
   return (
