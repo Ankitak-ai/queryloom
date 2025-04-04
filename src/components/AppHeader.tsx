@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Brain, LogIn, LogOut, User } from 'lucide-react';
+import { Brain, LogIn, LogOut, User, MessageSquare } from 'lucide-react';
 
 const AppHeader: React.FC = () => {
   const { user, signOut } = useAuth();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
@@ -15,10 +16,28 @@ const AppHeader: React.FC = () => {
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm py-3">
       <div className="container mx-auto px-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <Brain className="h-6 w-6 text-purple-600" />
-          <span className="font-semibold text-lg">SQL Builder</span>
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-2">
+            <Brain className="h-6 w-6 text-purple-600" />
+            <span className="font-semibold text-lg">SQL Builder</span>
+          </Link>
+          
+          <nav className="hidden md:flex items-center gap-4">
+            <Link 
+              to="/" 
+              className={`text-sm ${location.pathname === '/' ? 'text-purple-600 font-medium' : 'text-gray-600 hover:text-purple-600'}`}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/reviews" 
+              className={`text-sm flex items-center gap-1 ${location.pathname === '/reviews' ? 'text-purple-600 font-medium' : 'text-gray-600 hover:text-purple-600'}`}
+            >
+              <MessageSquare size={14} />
+              <span>Reviews</span>
+            </Link>
+          </nav>
+        </div>
         
         <div>
           {user ? (
