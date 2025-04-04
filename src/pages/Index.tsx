@@ -6,6 +6,7 @@ import DatasetPreview from '@/components/DatasetPreview';
 import QueryInput from '@/components/QueryInput';
 import SqlDisplay from '@/components/SqlDisplay';
 import { toast } from '@/lib/toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DatasetFile {
   file: File;
@@ -76,50 +77,28 @@ const Index = () => {
         };
       });
       
-      // For now, we'll just generate a placeholder SQL query
-      // When the AI integration is provided later, this will be replaced
-      const placeholderSql = generatePlaceholderSql(query, schemaInfo);
+      // Call the Supabase Edge Function to generate the SQL query
+      const { data, error } = await supabase.functions.invoke('generate-sql', {
+        body: { query, schemaInfo }
+      });
       
-      // Small delay to simulate AI processing
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (error) {
+        throw new Error(error.message);
+      }
       
-      setGeneratedSql(placeholderSql);
+      if (data && data.sql) {
+        setGeneratedSql(data.sql);
+      } else if (data && data.error) {
+        throw new Error(data.error);
+      } else {
+        throw new Error('Failed to generate SQL query');
+      }
     } catch (error) {
       console.error('Error generating SQL query:', error);
-      toast.error('Failed to generate SQL query');
+      toast.error(`Failed to generate SQL query: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }
-  };
-  
-  // This function will be replaced with the actual AI-based SQL generator
-  const generatePlaceholderSql = (query: string, schemaInfo: any[]) => {
-    // Generate a schema string to show what tables are available
-    const schemaString = schemaInfo.map(schema => {
-      return generateTableSchema(
-        schema.tableName, 
-        schema.columns, 
-        schema.dataTypes
-      );
-    }).join('\n\n');
-    
-    return `-- This is a placeholder SQL query based on your input
--- When the AI integration is provided, this will be replaced with the actual generated query
--- Available tables and their schema:
-
-${schemaString}
-
--- Based on your query: "${query}"
--- A sample SQL query might be:
-
-SELECT 
-  *
-FROM 
-  ${schemaInfo[0]?.tableName} 
-WHERE 
-  -- Conditions based on your natural language query would be here
-  1=1
-LIMIT 10;`;
   };
 
   return (
