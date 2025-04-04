@@ -11,8 +11,12 @@ import PredefinedQueries from '@/components/PredefinedQueries';
 import UserQueries from '@/components/UserQueries';
 import AppHeader from '@/components/AppHeader';
 import { toast } from '@/lib/toast';
-import { Brain } from 'lucide-react';
+import { Brain, Info } from 'lucide-react';
 import { trackPageVisit } from '@/utils/trackPageVisit';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useNavigate } from 'react-router-dom';
 
 interface DatasetFile {
   file: File;
@@ -27,7 +31,11 @@ const Index = () => {
   const [sqlExplanation, setSqlExplanation] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [naturalLanguageQuery, setNaturalLanguageQuery] = useState<string>('');
-  const { user } = useAuth();
+  const { user, queryUsage, incrementQueryUsage, getQueryLimit } = useAuth();
+  const navigate = useNavigate();
+
+  const remainingQueries = getQueryLimit() - queryUsage.count;
+  const resetTime = new Date(queryUsage.resetTime);
 
   useEffect(() => {
     // Track page visit when component mounts
@@ -77,6 +85,15 @@ const Index = () => {
       return;
     }
     
+    if (!incrementQueryUsage()) {
+      if (user) {
+        toast.error(`You've reached your limit of ${getQueryLimit()} queries per hour. Please try again later.`);
+      } else {
+        toast.error(`You've reached the guest limit of ${getQueryLimit()} queries per hour. Sign in for higher limits.`);
+      }
+      return;
+    }
+    
     setIsGenerating(true);
     setNaturalLanguageQuery(query);
     
@@ -101,11 +118,6 @@ const Index = () => {
       if (data && data.sql) {
         setGeneratedSql(data.sql);
         setSqlExplanation(data.explanation || '');
-        
-        // Save query to user's history if logged in
-        if (user) {
-          await saveUserQuery(query);
-        }
       } else if (data && data.error) {
         throw new Error(data.error);
       } else {
@@ -116,18 +128,6 @@ const Index = () => {
       toast.error(`Failed to generate SQL query: ${error.message}`);
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const saveUserQuery = async (queryText: string) => {
-    try {
-      await (supabase as any).from('user_queries').insert({
-        user_id: user?.id,
-        query_text: queryText
-      });
-    } catch (error) {
-      console.error('Error saving user query:', error);
-      // Don't show a toast error for this since it's a background operation
     }
   };
 
@@ -155,11 +155,51 @@ const Index = () => {
             Advanced AI reasoning for precise SQL generation
           </div>
           
-          {/* Add visitor stats */}
+          <div className="mt-4 inline-flex items-center justify-center px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+            {remainingQueries} of {getQueryLimit()} queries remaining this hour
+          </div>
+          
           <div className="mt-4 flex justify-center">
             <VisitorStats />
           </div>
         </div>
+        
+        {!user && (
+          <Alert className="mb-8 bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
+            <Info className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+            <AlertDescription className="text-sm text-yellow-700 dark:text-yellow-300">
+              You're currently using the guest tier with {getQueryLimit()} queries per hour. 
+              <Button 
+                variant="link" 
+                className="text-purple-600 dark:text-purple-400 p-0 h-auto font-medium" 
+                onClick={() => navigate('/auth')}
+              >
+                Sign in
+              </Button> to get {QUERY_LIMIT_USER} queries per hour.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {remainingQueries === 0 && (
+          <Alert className="mb-8 bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800">
+            <Info className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <AlertDescription className="text-sm text-red-700 dark:text-red-300">
+              You've reached your query limit for this hour. Your limit will reset at {resetTime.toLocaleTimeString()}.
+              {!user && (
+                <span>
+                  {' '}
+                  <Button 
+                    variant="link" 
+                    className="text-purple-600 dark:text-purple-400 p-0 h-auto font-medium" 
+                    onClick={() => navigate('/auth')}
+                  >
+                    Sign in
+                  </Button> to get more queries.
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
         
         <div className="grid gap-8">
           <FileUpload onFilesUploaded={handleFilesUploaded} />
