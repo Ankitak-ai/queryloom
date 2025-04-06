@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { parseCSV, inferDataTypes } from '@/utils/csvParser';
 import { useAuth } from '@/contexts/AuthContext';
@@ -47,7 +46,6 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    // Scroll to SQL display when SQL is generated
     if (generatedSql && sqlDisplayRef.current) {
       sqlDisplayRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -167,24 +165,8 @@ const Index = () => {
             Advanced AI reasoning for precise SQL generation
           </div>
           
-          <div className="mt-4 flex flex-col items-center justify-center gap-4">
+          <div className="mt-4 flex items-center justify-center">
             <VisitorStats />
-            
-            <div className="product-hunt-badge">
-              <a 
-                href="https://www.producthunt.com/posts/ai-sql-query-builder?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-ai&#0045;sql&#0045;query&#0045;builder" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                <img 
-                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=949654&theme=light&t=1743802327481" 
-                  alt="AI SQL Query Builder - query-craft-ai-web | Product Hunt" 
-                  style={{ width: '250px', height: '54px' }} 
-                  width="250" 
-                  height="54" 
-                />
-              </a>
-            </div>
           </div>
         </div>
         
