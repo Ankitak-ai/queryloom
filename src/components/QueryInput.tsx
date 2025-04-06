@@ -48,7 +48,8 @@ const QueryInput: React.FC<QueryInputProps> = ({ onGenerateQuery, isGenerating, 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          
+        </CardContent>
+        <CardFooter className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Database size={16} className="text-gray-500" />
             <TooltipProvider>
@@ -76,8 +77,7 @@ const QueryInput: React.FC<QueryInputProps> = ({ onGenerateQuery, isGenerating, 
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-end">
+          
           <Button 
             type="submit" 
             className="bg-purple-600 hover:bg-purple-700"
