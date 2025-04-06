@@ -34,11 +34,10 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation, dialect = 'po
     sqlserver: 'SQL Server'
   };
 
-  // Format tables in explanation
-  const formattedExplanation = explanation.replace(
-    /\|\s*(.*?)\s*\|/g, 
-    (match) => `\n\n${match}\n\n`
-  );
+  // Format tables and add spacing after headings in explanation
+  const formattedExplanation = explanation
+    .replace(/\|\s*(.*?)\s*\|/g, (match) => `\n\n${match}\n\n`)
+    .replace(/#+\s+(.*?)\n/g, (match) => `${match}\n`); // Add extra newline after headings
 
   return (
     <Card className="mt-6">
@@ -105,14 +104,15 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation, dialect = 'po
           <TabsContent value="explanation">
             <div className="prose prose-sm dark:prose-invert max-w-none p-4 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm 
               prose-headings:font-semibold prose-headings:text-purple-700 dark:prose-headings:text-purple-400 
-              prose-p:text-gray-700 dark:prose-p:text-gray-300 
+              prose-headings:mt-6 prose-headings:mb-4
+              prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:my-3
               prose-a:text-purple-600 dark:prose-a:text-purple-400 prose-a:font-medium 
               prose-strong:text-gray-800 dark:prose-strong:text-gray-200 
               prose-code:text-purple-600 dark:prose-code:text-purple-400 
               prose-code:bg-purple-50 dark:prose-code:bg-purple-900/30 
               prose-code:px-1 prose-code:py-0.5 prose-code:rounded 
               prose-code:before:content-none prose-code:after:content-none
-              prose-table:border-collapse prose-table:w-full
+              prose-table:border-collapse prose-table:w-full prose-table:my-4
               prose-th:border prose-th:border-slate-300 dark:prose-th:border-slate-700 prose-th:bg-slate-100 dark:prose-th:bg-slate-800 prose-th:p-2 prose-th:text-left
               prose-td:border prose-td:border-slate-300 dark:prose-td:border-slate-700 prose-td:p-2">
               <Markdown>
@@ -120,9 +120,9 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation, dialect = 'po
               </Markdown>
               
               {explanation.includes('SQL Server') && (
-                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-                  <h4 className="font-medium text-purple-600 dark:text-purple-400 mb-2">SQL Server Optimization Tips</h4>
-                  <ul className="list-disc pl-5 space-y-1">
+                <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
+                  <h4 className="font-medium text-purple-600 dark:text-purple-400 mb-3">SQL Server Optimization Tips</h4>
+                  <ul className="list-disc pl-5 space-y-2">
                     <li>Consider adding indexes on frequently queried columns</li>
                     <li>Use appropriate data types to improve query performance</li>
                     <li>Regularly update statistics for better query plans</li>
