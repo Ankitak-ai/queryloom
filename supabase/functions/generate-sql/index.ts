@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import OpenAI from "https://esm.sh/openai@4.20.1";
 
@@ -72,8 +71,12 @@ serve(async (req) => {
 
     console.log("Sending request to OpenAI...");
     const completion = await openai.chat.completions.create({
-      model: "deepseek-ai/deepseek-r1",
+      model: "nvidia/llama-3.3-nemotron-super-49b-v1",
       messages: [
+        {
+          role: "system", 
+          content: "detailed thinking on"
+        },
         {
           role: "user", 
           content: `Using the following table schema:
@@ -85,21 +88,12 @@ Convert this request into an optimized SQL query using ${dialect.toUpperCase()} 
 
 ${dialectGuide}
 
-First generate the SQL query, then provide a detailed explanation of how the query works and why you made the specific choices in its design.
-
-Your explanation should:
-1. **Use Markdown formatting** with section headers using numbered points
-2. **Bold important terms and concepts** using ** around the text
-3. **Structure your explanation clearly** with the following sections:
-   - ### 1. Query Strategy: Overview of the approach
-   - ### 2. Step-by-Step Breakdown
-   - ### 3. Optimization Choices
-   - ### 4. Expected Results: What the query will return`
+Provide a detailed explanation of the Query You provide`
         }
       ],
-      temperature: 0.4,
+      temperature: 0.6,
       top_p: 0.7,
-      max_tokens: 4096
+      max_tokens: 16384
     });
 
     let fullResponse = completion.choices[0]?.message?.content || '';
