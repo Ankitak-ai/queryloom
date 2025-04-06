@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Database, Copy, Check, FileSql } from 'lucide-react';
+import { Database, Copy, Check, Files } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -37,7 +37,7 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation, dialect = 'po
     <Card className="mt-6">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg flex items-center gap-2">
-          <FileSql size={18} className="text-purple-600" />
+          <Files size={18} className="text-purple-600" />
           Generated SQL Query
           {dialect && (
             <Badge variant="outline" className="ml-2 text-xs font-normal">
