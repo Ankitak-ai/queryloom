@@ -3,16 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Brain } from 'lucide-react';
+import { Brain, Database } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+export type SqlDialect = 'postgresql' | 'mysql' | 'sqlserver';
 
 interface QueryInputProps {
-  onGenerateQuery: (query: string) => void;
+  onGenerateQuery: (query: string, dialect: SqlDialect) => void;
   isGenerating: boolean;
   initialValue?: string;
 }
 
 const QueryInput: React.FC<QueryInputProps> = ({ onGenerateQuery, isGenerating, initialValue = '' }) => {
   const [query, setQuery] = useState(initialValue);
+  const [dialect, setDialect] = useState<SqlDialect>('postgresql');
   
   useEffect(() => {
     if (initialValue) {
@@ -23,7 +28,7 @@ const QueryInput: React.FC<QueryInputProps> = ({ onGenerateQuery, isGenerating, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim().length > 0) {
-      onGenerateQuery(query);
+      onGenerateQuery(query, dialect);
     }
   };
   
@@ -36,13 +41,41 @@ const QueryInput: React.FC<QueryInputProps> = ({ onGenerateQuery, isGenerating, 
             Natural Language Query
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <Textarea
             placeholder="Describe what you want to query from the data in plain English. For example: 'Find all customers who made purchases last month' or 'Show me the average sales by product category'"
             className="min-h-[120px] focus-visible:ring-purple-500"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          
+          <div className="flex items-center gap-2">
+            <Database size={16} className="text-gray-500" />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-sm text-gray-500">SQL Dialect:</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Choose the SQL dialect for your generated query</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <Select
+              value={dialect}
+              onValueChange={(value) => setDialect(value as SqlDialect)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select SQL dialect" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="postgresql">PostgreSQL</SelectItem>
+                <SelectItem value="mysql">MySQL</SelectItem>
+                <SelectItem value="sqlserver">SQL Server</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
         <CardFooter className="flex justify-end">
           <Button 

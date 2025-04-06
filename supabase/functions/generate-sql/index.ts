@@ -19,7 +19,7 @@ serve(async (req) => {
       throw new Error('API key not found');
     }
 
-    const { query, schemaInfo } = await req.json();
+    const { query, schemaInfo, dialect = 'postgresql' } = await req.json();
 
     if (!query || !schemaInfo) {
       return new Response(
@@ -54,6 +54,22 @@ serve(async (req) => {
       baseURL: "https://integrate.api.nvidia.com/v1"
     });
 
+    // Add dialect-specific instructions
+    let dialectGuide = "";
+    switch (dialect) {
+      case 'postgresql':
+        dialectGuide = "Use PostgreSQL syntax, with features like LATERAL joins, window functions, and common table expressions where appropriate.";
+        break;
+      case 'mysql':
+        dialectGuide = "Use MySQL syntax. Prefer JOIN operations over subqueries where possible. Use MySQL-specific functions when appropriate.";
+        break;
+      case 'sqlserver':
+        dialectGuide = "Use SQL Server (T-SQL) syntax with appropriate T-SQL functions and features like TOP, OFFSET-FETCH, and CTE support.";
+        break;
+      default:
+        dialectGuide = "Use standard SQL syntax compatible with most database systems.";
+    }
+
     console.log("Sending request to OpenAI...");
     const completion = await openai.chat.completions.create({
       model: "deepseek-ai/deepseek-r1",
@@ -65,7 +81,9 @@ ${schemaDescription}
 
 ${sampleDataSection.length > 0 ? sampleDataSection + '\n\n' : ''}
 
-Convert this request into an optimized SQL query: ${query}
+Convert this request into an optimized SQL query using ${dialect.toUpperCase()} syntax: ${query}
+
+${dialectGuide}
 
 First generate the SQL query, then provide a detailed explanation of how the query works and why you made the specific choices in its design.
 
@@ -76,9 +94,7 @@ Your explanation should:
    - ### 1. Query Strategy: Overview of the approach
    - ### 2. Step-by-Step Breakdown
    - ### 3. Optimization Choices
-   - ### 4. Expected Results: What the query will return
-
-Keep your explanation thorough but well-structured for easy reading.`
+   - ### 4. Expected Results: What the query will return`
         }
       ],
       temperature: 0.4,
@@ -134,7 +150,8 @@ Keep your explanation thorough but well-structured for easy reading.`
     return new Response(
       JSON.stringify({ 
         sql: generatedSql,
-        explanation: explanation 
+        explanation: explanation,
+        dialect: dialect
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

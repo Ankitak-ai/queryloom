@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import FileUpload from '@/components/FileUpload';
 import DatasetPreview from '@/components/DatasetPreview';
-import QueryInput from '@/components/QueryInput';
+import QueryInput, { SqlDialect } from '@/components/QueryInput';
 import SqlDisplay from '@/components/SqlDisplay';
 import VisitorStats from '@/components/VisitorStats';
 import PredefinedQueries from '@/components/PredefinedQueries';
@@ -34,6 +34,7 @@ const Index = () => {
   const [sqlExplanation, setSqlExplanation] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [naturalLanguageQuery, setNaturalLanguageQuery] = useState<string>('');
+  const [sqlDialect, setSqlDialect] = useState<SqlDialect>('postgresql');
   const { user, queryUsage, incrementQueryUsage, getQueryLimit } = useAuth();
   const navigate = useNavigate();
   const sqlDisplayRef = useRef<HTMLDivElement>(null);
@@ -89,7 +90,7 @@ const Index = () => {
     });
   };
   
-  const handleGenerateQuery = async (query: string) => {
+  const handleGenerateQuery = async (query: string, dialect: SqlDialect) => {
     if (datasets.length === 0) {
       toast.error('Please upload at least one dataset first');
       return;
@@ -106,6 +107,7 @@ const Index = () => {
     
     setIsGenerating(true);
     setNaturalLanguageQuery(query);
+    setSqlDialect(dialect);
     
     try {
       const schemaInfo = datasets.map(dataset => {
@@ -118,7 +120,7 @@ const Index = () => {
       });
       
       const { data, error } = await supabase.functions.invoke('generate-sql', {
-        body: { query, schemaInfo }
+        body: { query, schemaInfo, dialect }
       });
       
       if (error) {
@@ -243,6 +245,7 @@ const Index = () => {
                   <SqlDisplay 
                     sql={generatedSql} 
                     explanation={sqlExplanation}
+                    dialect={sqlDialect}
                   />
                 </div>
               )}
