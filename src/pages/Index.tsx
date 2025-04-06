@@ -161,7 +161,7 @@ const Index = () => {
           </div>
           <p className="text-gray-600 dark:text-gray-300 mt-2 max-w-2xl mx-auto">
             Upload your CSV datasets and get AI-generated SQL queries powered by the 
-            <span className="font-semibold text-purple-600 dark:text-purple-400"> DeepSeek R1 Reasoning Model</span>
+            <span className="font-semibold text-purple-600 dark:text-purple-400"> Nvidia Llama 3.3 Nemotron Model</span>
           </p>
           <div className="mt-2 inline-flex items-center justify-center px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
             Advanced AI reasoning for precise SQL generation
