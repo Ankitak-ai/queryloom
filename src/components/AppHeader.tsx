@@ -3,14 +3,27 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Brain, LogIn, LogOut, User, MessageSquare, UserPlus } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Brain, LogIn, LogOut, UserPlus, MessageSquare } from 'lucide-react';
 
 const AppHeader: React.FC = () => {
-  const { user, signOut, loading } = useAuth();
+  const { user, displayName, signOut, loading } = useAuth();
   const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  // Get user initials for avatar
+  const getInitials = () => {
+    if (!displayName) return 'U';
+    
+    const parts = displayName.split(' ');
+    if (parts.length === 1) {
+      return displayName.charAt(0).toUpperCase();
+    }
+    
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
   };
 
   return (
@@ -47,8 +60,12 @@ const AppHeader: React.FC = () => {
           ) : user ? (
             <div className="flex items-center gap-3">
               <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
-                <User size={14} className="mr-1" />
-                <span className="hidden sm:inline">{user.email}</span>
+                <Avatar className="h-6 w-6 mr-2">
+                  <AvatarFallback className="bg-purple-100 text-purple-600 text-xs">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <span>{displayName || 'User'}</span>
               </div>
               <Button 
                 variant="outline" 

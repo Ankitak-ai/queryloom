@@ -13,6 +13,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  displayName: string;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signUp: (email: string, password: string) => Promise<{ error: any | null }>;
   signInWithGoogle: () => Promise<void>;
@@ -33,6 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [displayName, setDisplayName] = useState<string>('');
   const [queryUsage, setQueryUsage] = useState<QueryUsage>(() => {
     // Try to load from localStorage
     const savedUsage = localStorage.getItem('queryUsage');
@@ -44,6 +46,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       resetTime: Date.now() + RESET_PERIOD
     };
   });
+
+  // Extract display name from user data
+  useEffect(() => {
+    if (user) {
+      // Try to get name from user metadata or provider data
+      let name = '';
+      
+      // Check user metadata first
+      if (user.user_metadata) {
+        name = user.user_metadata.full_name || 
+               user.user_metadata.name || 
+               user.user_metadata.user_name || 
+               user.user_metadata.preferred_username || '';
+      }
+      
+      // If no name found in metadata, check identities
+      if (!name && user.identities && user.identities.length > 0) {
+        const identity = user.identities[0];
+        if (identity.identity_data) {
+          name = identity.identity_data.full_name || 
+                 identity.identity_data.name || 
+                 identity.identity_data.preferred_username || '';
+        }
+      }
+      
+      // Fallback to email (but hide the domain part)
+      if (!name && user.email) {
+        name = user.email.split('@')[0];
+      }
+      
+      setDisplayName(name);
+    } else {
+      setDisplayName('');
+    }
+  }, [user]);
 
   // Save query usage to localStorage whenever it changes
   useEffect(() => {
@@ -154,6 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session, 
         user, 
         loading, 
+        displayName,
         signIn, 
         signUp,
         signInWithGoogle,
