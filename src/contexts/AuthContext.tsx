@@ -16,6 +16,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signUp: (email: string, password: string) => Promise<{ error: any | null }>;
   signInWithGoogle: () => Promise<void>;
+  signInWithGithub: () => Promise<void>;
   signOut: () => Promise<void>;
   queryUsage: QueryUsage;
   incrementQueryUsage: () => boolean; // Returns false if limit reached
@@ -134,6 +135,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const signInWithGithub = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: window.location.origin + '/auth'
+      }
+    });
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -147,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signIn, 
         signUp,
         signInWithGoogle,
+        signInWithGithub,
         signOut, 
         queryUsage, 
         incrementQueryUsage, 
