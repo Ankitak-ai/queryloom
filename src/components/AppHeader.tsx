@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Brain, LogIn, LogOut, User, MessageSquare } from 'lucide-react';
 
 const AppHeader: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const location = useLocation();
 
   const handleSignOut = async () => {
@@ -40,7 +40,11 @@ const AppHeader: React.FC = () => {
         </div>
         
         <div className="flex flex-col items-end">
-          {user ? (
+          {loading ? (
+            <div className="h-9 flex items-center">
+              <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-8 w-24 rounded"></div>
+            </div>
+          ) : user ? (
             <div className="flex items-center gap-3">
               <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
                 <User size={14} className="mr-1" />

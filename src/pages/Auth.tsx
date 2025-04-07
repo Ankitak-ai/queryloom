@@ -11,39 +11,61 @@ import { toast } from '@/lib/toast';
 import { Brain, Info, LogIn } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [processingAuth, setProcessingAuth] = useState(false);
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Check for hash params from auth providers (Google OAuth, etc.)
   useEffect(() => {
     // If user is already authenticated, redirect to main page immediately
     if (user) {
+      console.log("Auth page: User is already authenticated, redirecting to home");
       navigate('/');
       return;
     }
     
-    // Check if we have hash params from email confirmation
+    // Check if we have hash params from OAuth
     const hash = location.hash;
-    if (hash) {
-      // Handle auth redirect with tokens in URL
-      if (hash.includes('access_token') || hash.includes('error')) {
-        if (hash.includes('error')) {
-          const params = new URLSearchParams(hash.substring(1));
-          const error = params.get('error_description') || 'Authentication failed';
-          toast.error(decodeURIComponent(error));
-        } else {
-          // If we have an access token, it means the authentication was successful
-          // Supabase client will automatically handle the token
-          toast.success('Authentication successful!');
-          // Navigate to home page after successful email confirmation
-          navigate('/');
-        }
+    if (hash && (hash.includes('access_token') || hash.includes('error'))) {
+      console.log("Auth page: Detected auth provider hash in URL");
+      setProcessingAuth(true);
+
+      // We don't need to manually handle the hash since Supabase client does it
+      // Just log any errors that might occur
+      if (hash.includes('error')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const error = params.get('error_description') || 'Authentication failed';
+        toast.error(decodeURIComponent(error));
+        setProcessingAuth(false);
+      } else {
+        // Let the Supabase auth handler manage the token
+        // It will update the session via onAuthStateChange in AuthContext
+        toast.success('Authentication successful! Redirecting...');
+        
+        // We'll let the AuthContext take care of session management
+        // and the useEffect that watches for user changes will redirect
+        // Just make sure we have a small delay to let the session get established
+        setTimeout(() => {
+          // Check session directly to ensure it's established
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+              console.log("Auth page: Session confirmed after OAuth, redirecting");
+              navigate('/');
+            } else {
+              console.log("Auth page: No session found after OAuth");
+              setProcessingAuth(false);
+              toast.error("Failed to establish session. Please try again.");
+            }
+          });
+        }, 500);
       }
     }
   }, [location, user, navigate]);
@@ -88,6 +110,7 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    console.log("Starting Google sign-in process");
     try {
       await signInWithGoogle();
     } catch (error: any) {
@@ -137,8 +160,8 @@ const Auth = () => {
     );
   }
 
-  // If we're processing the redirect, don't show the login form
-  if (location.hash && (location.hash.includes('access_token') || location.hash.includes('error'))) {
+  // If we're processing the redirect, show loading indicator
+  if (processingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
         <Card className="w-full max-w-md">
@@ -149,6 +172,9 @@ const Auth = () => {
             <CardTitle className="text-2xl">Processing Authentication</CardTitle>
             <CardDescription>Please wait while we confirm your authentication...</CardDescription>
           </CardHeader>
+          <CardContent className="flex justify-center py-6">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-700"></div>
+          </CardContent>
         </Card>
       </div>
     );

@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -14,15 +14,21 @@ const queryClient = new QueryClient();
 
 // Protected route component that redirects to Index if authenticated
 const AuthRoute = ({ element }: { element: React.ReactNode }) => {
-  // We'll use a session check from localStorage as a quick check before the full auth context loads
-  const hasSession = !!localStorage.getItem('supabase.auth.token');
+  const { user, loading } = useAuth();
   
-  // If there's a session, redirect to the home page
-  return hasSession ? <Navigate to="/" replace /> : element;
+  // Show loading state while we determine authentication
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-700"></div>
+    </div>;
+  }
+  
+  // If there's a user, redirect to the home page
+  return user ? <Navigate to="/" replace /> : element;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const AppWithAuth = () => {
+  return (
     <BrowserRouter>
       <TooltipProvider>
         <AuthProvider>
@@ -38,6 +44,12 @@ const App = () => (
         </AuthProvider>
       </TooltipProvider>
     </BrowserRouter>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AppWithAuth />
   </QueryClientProvider>
 );
 
