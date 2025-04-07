@@ -39,7 +39,7 @@ const AppHeader: React.FC = () => {
           </nav>
         </div>
         
-        <div className="flex flex-col items-end">
+        <div>
           {user ? (
             <div className="flex items-center gap-3">
               <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
@@ -70,22 +70,6 @@ const AppHeader: React.FC = () => {
             </Button>
           )}
         </div>
-      </div>
-      
-      <div className="container mx-auto px-4 flex justify-end mt-1">
-        <a 
-          href="https://www.producthunt.com/posts/ai-sql-query-builder?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-ai&#0045;sql&#0045;query&#0045;builder" 
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          <img 
-            src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=949654&theme=light&t=1743802327481" 
-            alt="AI SQL Query Builder - query-craft-ai-web | Product Hunt" 
-            style={{ width: '200px', height: '44px' }} 
-            width="200" 
-            height="44" 
-          />
-        </a>
       </div>
     </header>
   );
