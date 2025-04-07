@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,8 @@ const Auth = () => {
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') === 'signup' ? 'signup' : 'signin';
 
   // Check for hash params from auth providers (Google OAuth, etc.)
   useEffect(() => {
@@ -191,9 +193,9 @@ const Auth = () => {
           <CardDescription>Sign in to save your queries</CardDescription>
         </CardHeader>
         
-        <Tabs defaultValue="signin" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
+            <TabsTrigger value="signin">Login</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
           
@@ -223,7 +225,7 @@ const Auth = () => {
                 </div>
                 
                 <Button className="w-full bg-purple-700 hover:bg-purple-800" type="submit" disabled={isLoading}>
-                  {isLoading ? 'Signing in...' : 'Sign In with Email'}
+                  {isLoading ? 'Signing in...' : 'Login with Email'}
                 </Button>
                 
                 <div className="relative my-4">
@@ -251,7 +253,7 @@ const Auth = () => {
                       <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
                     </g>
                   </svg>
-                  Sign in with Google
+                  Continue with Google
                 </Button>
               </CardContent>
             </form>
@@ -286,7 +288,7 @@ const Auth = () => {
                 </div>
                 
                 <Button className="w-full bg-purple-700 hover:bg-purple-800" type="submit" disabled={isLoading}>
-                  {isLoading ? 'Creating account...' : 'Create Account with Email'}
+                  {isLoading ? 'Creating account...' : 'Sign Up with Email'}
                 </Button>
                 
                 <div className="relative my-4">
@@ -314,7 +316,7 @@ const Auth = () => {
                       <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
                     </g>
                   </svg>
-                  Sign up with Google
+                  Continue with Google
                 </Button>
               </CardContent>
             </form>

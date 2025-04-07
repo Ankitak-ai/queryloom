@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Brain, LogIn, LogOut, User, MessageSquare } from 'lucide-react';
+import { Brain, LogIn, LogOut, User, MessageSquare, UserPlus } from 'lucide-react';
 
 const AppHeader: React.FC = () => {
   const { user, signOut, loading } = useAuth();
@@ -61,17 +61,30 @@ const AppHeader: React.FC = () => {
               </Button>
             </div>
           ) : (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              asChild
-              className="text-xs flex items-center gap-1"
-            >
-              <Link to="/auth">
-                <LogIn size={14} />
-                <span>Sign In</span>
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                asChild
+                className="text-xs flex items-center gap-1"
+              >
+                <Link to="/auth?tab=signin">
+                  <LogIn size={14} />
+                  <span>Login</span>
+                </Link>
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                asChild
+                className="text-xs flex items-center gap-1 bg-purple-700 hover:bg-purple-800"
+              >
+                <Link to="/auth?tab=signup">
+                  <UserPlus size={14} />
+                  <span>Sign Up</span>
+                </Link>
+              </Button>
+            </div>
           )}
           
           <div className="mt-3">
