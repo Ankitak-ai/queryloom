@@ -15,6 +15,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signUp: (email: string, password: string) => Promise<{ error: any | null }>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   queryUsage: QueryUsage;
   incrementQueryUsage: () => boolean; // Returns false if limit reached
@@ -117,6 +118,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/auth'
+      }
+    });
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -128,7 +138,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user, 
         loading, 
         signIn, 
-        signUp, 
+        signUp,
+        signInWithGoogle,
         signOut, 
         queryUsage, 
         incrementQueryUsage, 
