@@ -10,7 +10,6 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { toast } from '@/lib/toast';
 import { Badge } from '@/components/ui/badge';
 import type { SqlDialect } from '@/components/QueryInput';
-import { Separator } from '@/components/ui/separator';
 
 interface SqlDisplayProps {
   sql: string;
@@ -111,7 +110,7 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation, dialect = 'po
               prose-code:text-purple-600 dark:prose-code:text-purple-400 
               prose-code:bg-purple-50 dark:prose-code:bg-purple-900/30 
               prose-code:px-1 prose-code:py-0.5 prose-code:rounded 
-              prose-code:before:content-none prose-code:after:content-none
+              prose-code:before:content-[''] prose-code:after:content-['']
               prose-table:border-collapse prose-table:w-full prose-table:my-4
               prose-th:border prose-th:border-slate-300 dark:prose-th:border-slate-700 prose-th:bg-slate-100 dark:prose-th:bg-slate-800 prose-th:p-2 prose-th:text-left
               prose-td:border prose-td:border-slate-300 dark:prose-td:border-slate-700 prose-td:p-2">
