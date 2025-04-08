@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { Helmet } from "react-helmet-async";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -30,6 +31,11 @@ const AuthRoute = ({ element }: { element: React.ReactNode }) => {
 const AppWithAuth = () => {
   return (
     <BrowserRouter>
+      <Helmet>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" href="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
+        <meta name="theme-color" content="#6d28d9" />
+      </Helmet>
       <TooltipProvider>
         <AuthProvider>
           <Toaster />

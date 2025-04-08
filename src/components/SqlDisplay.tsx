@@ -42,8 +42,8 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation, dialect = 'po
     <Card className="mt-6">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg flex items-center gap-2">
-          <Files size={18} className="text-purple-600" />
-          Generated SQL Query
+          <Files size={18} className="text-purple-600" aria-hidden="true" />
+          <span>Generated SQL Query</span>
           {dialect && (
             <Badge variant="outline" className="ml-2 text-xs font-normal">
               {dialectLabels[dialect]}
@@ -55,8 +55,9 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation, dialect = 'po
           variant="outline"
           className="h-8 gap-1"
           onClick={copyToClipboard}
+          aria-label={copied ? "SQL copied to clipboard" : "Copy SQL to clipboard"}
         >
-          {copied ? <Check size={14} /> : <Copy size={14} />}
+          {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
           {copied ? 'Copied' : 'Copy'}
         </Button>
       </CardHeader>
@@ -64,8 +65,8 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation, dialect = 'po
         <Tabs defaultValue="sql" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="sql" className="flex items-center gap-1">
-              <Database size={14} />
-              SQL
+              <Database size={14} aria-hidden="true" />
+              <span>SQL</span>
             </TabsTrigger>
             <TabsTrigger value="explanation" className="flex items-center gap-1">
               <svg
@@ -77,16 +78,29 @@ const SqlDisplay: React.FC<SqlDisplayProps> = ({ sql, explanation, dialect = 'po
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 className="w-3.5 h-3.5"
+                aria-hidden="true"
               >
                 <circle cx="12" cy="12" r="10" />
                 <path d="M12 16v-4" />
                 <path d="M12 8h.01" />
               </svg>
-              Explanation
+              <span>Explanation</span>
             </TabsTrigger>
           </TabsList>
           <TabsContent value="sql">
             <div className="rounded-md overflow-hidden">
+              <script type="application/ld+json">
+                {JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "SoftwareSourceCode",
+                  "codeRepository": "QueryLoom",
+                  "programmingLanguage": {
+                    "@type": "ComputerLanguage",
+                    "name": `SQL (${dialectLabels[dialect]})`,
+                  },
+                  "text": sql
+                })}
+              </script>
               <SyntaxHighlighter
                 language="sql"
                 style={vscDarkPlus}
