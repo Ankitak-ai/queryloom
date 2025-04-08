@@ -1,5 +1,5 @@
 # QueryLoom
-<img src="https://raw.githubusercontent.com/Ankitak-ai/queryloom/main/src/Logo.png" alt="QueryLoom Logo" width="300">
+<img src="https://raw.githubusercontent.com/Ankitak-ai/queryloom/main/src/Logo.png" alt="QueryLoom Logo" width="400">
 
 A powerful and flexible tool for building, managing, and executing complex queries with ease.
 
