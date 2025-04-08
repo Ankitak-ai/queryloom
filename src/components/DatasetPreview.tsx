@@ -2,6 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface DatasetFile {
   file: File;
@@ -12,9 +14,10 @@ interface DatasetFile {
 
 interface DatasetPreviewProps {
   datasets: DatasetFile[];
+  onRemoveDataset?: (filename: string) => void;
 }
 
-const DatasetPreview: React.FC<DatasetPreviewProps> = ({ datasets }) => {
+const DatasetPreview: React.FC<DatasetPreviewProps> = ({ datasets, onRemoveDataset }) => {
   if (datasets.length === 0) {
     return null;
   }
@@ -31,11 +34,26 @@ const DatasetPreview: React.FC<DatasetPreviewProps> = ({ datasets }) => {
               <TabsTrigger
                 key={dataset.file.name}
                 value={dataset.file.name}
-                className="flex-shrink-0"
+                className="flex-shrink-0 group relative"
               >
                 {dataset.file.name.length > 15 
                   ? dataset.file.name.substring(0, 15) + '...' 
                   : dataset.file.name}
+                
+                {onRemoveDataset && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute -top-2 -right-2 h-5 w-5 p-0 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveDataset(dataset.file.name);
+                    }}
+                    aria-label={`Remove ${dataset.file.name}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>

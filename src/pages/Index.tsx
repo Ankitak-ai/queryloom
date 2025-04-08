@@ -90,6 +90,17 @@ const Index = () => {
     });
   };
   
+  const handleRemoveDataset = (filename: string) => {
+    setDatasets(prev => prev.filter(dataset => dataset.file.name !== filename));
+    toast.success(`Removed dataset: ${filename}`);
+    
+    // Clear generated SQL if all datasets are removed
+    if (datasets.length <= 1) {
+      setGeneratedSql('');
+      setSqlExplanation('');
+    }
+  };
+  
   const handleGenerateQuery = async (query: string, dialect: SqlDialect) => {
     if (datasets.length === 0) {
       toast.error('Please upload at least one dataset first');
@@ -231,7 +242,10 @@ const Index = () => {
           <div className="grid md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
               {datasets.length > 0 && (
-                <DatasetPreview datasets={datasets} />
+                <DatasetPreview 
+                  datasets={datasets} 
+                  onRemoveDataset={handleRemoveDataset}
+                />
               )}
               
               <QueryInput 
