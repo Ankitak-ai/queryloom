@@ -33,10 +33,10 @@ const AppHeader: React.FC = () => {
           <Link to="/" className="flex items-center gap-2">
             <img 
               src="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" 
-              alt="SQL Builder Logo" 
+              alt="QueryLoom Logo" 
               className="h-6 w-6" 
             />
-            <span className="font-semibold text-lg">SQL Builder</span>
+            <span className="font-semibold text-lg">QueryLoom</span>
           </Link>
           
           <nav className="hidden md:flex items-center gap-4">

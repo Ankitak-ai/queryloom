@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { parseCSV, inferDataTypes } from '@/utils/csvParser';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,7 +11,7 @@ import PredefinedQueries from '@/components/PredefinedQueries';
 import UserQueries from '@/components/UserQueries';
 import AppHeader from '@/components/AppHeader';
 import { toast } from '@/lib/toast';
-import { Brain, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { trackPageVisit } from '@/utils/trackPageVisit';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,7 +46,6 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    // Scroll to SQL display when SQL is generated
     if (generatedSql && sqlDisplayRef.current) {
       sqlDisplayRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -94,7 +92,6 @@ const Index = () => {
     setDatasets(prev => prev.filter(dataset => dataset.file.name !== filename));
     toast.success(`Removed dataset: ${filename}`);
     
-    // Clear generated SQL if all datasets are removed
     if (datasets.length <= 1) {
       setGeneratedSql('');
       setSqlExplanation('');
@@ -165,15 +162,20 @@ const Index = () => {
       <div className="container px-4 mx-auto max-w-6xl py-8">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Brain className="h-8 w-8 text-purple-600" />
+            <img 
+              src="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" 
+              alt="QueryLoom Logo" 
+              className="h-8 w-8" 
+            />
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-blue-500">
-              AI SQL Query Builder
+              AI QueryLoom
             </h1>
           </div>
           <p className="text-gray-600 dark:text-gray-300 mt-2 max-w-2xl mx-auto">
             Upload your CSV datasets and get AI-generated SQL queries powered by the 
             <span className="font-semibold text-purple-600 dark:text-purple-400"> Nvidia Llama 3.3 Nemotron Model</span>
           </p>
+          
           <div className="mt-2 inline-flex items-center justify-center px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
             Advanced AI reasoning for precise SQL generation
           </div>
