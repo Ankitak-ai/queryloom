@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Brain, LogIn, LogOut, UserPlus, MessageSquare } from 'lucide-react';
+import { LogIn, LogOut, UserPlus, MessageSquare } from 'lucide-react';
 
 const AppHeader: React.FC = () => {
   const { user, displayName, signOut, loading } = useAuth();
@@ -31,7 +31,11 @@ const AppHeader: React.FC = () => {
       <div className="container mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2">
-            <Brain className="h-6 w-6 text-purple-600" />
+            <img 
+              src="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" 
+              alt="SQL Builder Logo" 
+              className="h-6 w-6" 
+            />
             <span className="font-semibold text-lg">SQL Builder</span>
           </Link>
           
