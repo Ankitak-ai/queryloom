@@ -11,8 +11,6 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Reviews from "./pages/Reviews";
 
-const queryClient = new QueryClient();
-
 // Protected route component that redirects to Index if authenticated
 const AuthRoute = ({ element }: { element: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -28,7 +26,7 @@ const AuthRoute = ({ element }: { element: React.ReactNode }) => {
   return user ? <Navigate to="/" replace /> : element;
 };
 
-const AppWithAuth = () => {
+const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Helmet>
@@ -53,10 +51,15 @@ const AppWithAuth = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AppWithAuth />
-  </QueryClientProvider>
-);
+// Create QueryClient instance outside of the component
+const queryClient = new QueryClient();
+
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppRoutes />
+    </QueryClientProvider>
+  );
+};
 
 export default App;
