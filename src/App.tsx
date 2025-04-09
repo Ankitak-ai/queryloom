@@ -33,6 +33,7 @@ const AppRoutes = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" href="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
         <meta name="theme-color" content="#6d28d9" />
+        <meta name="google-site-verification" content="o9nQaP1kCVl6QKWRZAhlk13A7GU12Teb9jlzWrO3gvw" />
         <title>QueryLoom - Weaving natural language into SQL queries seamlessly</title>
         <meta name="description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
         
