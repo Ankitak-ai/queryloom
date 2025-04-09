@@ -33,6 +33,10 @@ const AppRoutes = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" href="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
         <meta name="theme-color" content="#6d28d9" />
+        <meta property="og:title" content="QueryLoom - Weaving natural language into SQL queries seamlessly" />
+        <meta property="og:image" content="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
+        <meta name="twitter:title" content="QueryLoom - Weaving natural language into SQL queries seamlessly" />
+        <meta name="twitter:image" content="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
       </Helmet>
       <TooltipProvider>
         <AuthProvider>
