@@ -18,6 +18,16 @@ export interface PowerBIVisual {
   requiredFields: string[];
 }
 
+// Interface for AI visualization request
+export interface VisualAIRequest {
+  datasets: {
+    name: string;
+    headers: string[];
+    dataTypes: Record<string, string>;
+    sampleRows: any[][];
+  }[];
+}
+
 // List of available Power BI visuals with their required fields
 export const POWER_BI_VISUALS: Record<string, string[]> = {
   'Stacked Bar Chart': ['y-axis', 'x-axis', 'legend', 'small multiples', 'tooltips'],

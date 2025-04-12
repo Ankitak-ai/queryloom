@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,18 +11,15 @@ import NotFound from "./pages/NotFound";
 import Reviews from "./pages/Reviews";
 import PowerBiSuggestions from "./pages/PowerBiSuggestions";
 
-// Protected route component that redirects to Index if authenticated
 const AuthRoute = ({ element }: { element: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
-  // Show loading state while we determine authentication
   if (loading) {
     return <div className="flex items-center justify-center h-screen">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-700"></div>
     </div>;
   }
   
-  // If there's a user, redirect to the home page
   return user ? <Navigate to="/" replace /> : element;
 };
 
@@ -38,7 +34,6 @@ const AppRoutes = () => {
         <title>QueryLoom - Weaving natural language into SQL queries seamlessly</title>
         <meta name="description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
         
-        {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://queryloom.fun" />
         <meta property="og:site_name" content="QueryLoom" />
@@ -49,7 +44,6 @@ const AppRoutes = () => {
         <meta property="og:image:height" content="630" />
         <meta property="og:locale" content="en_US" />
         
-        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@queryloom" />
         <meta name="twitter:title" content="QueryLoom - Weaving natural language into SQL queries seamlessly" />
@@ -66,7 +60,6 @@ const AppRoutes = () => {
             <Route path="/auth" element={<AuthRoute element={<Auth />} />} />
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/powerbi" element={<PowerBiSuggestions />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
@@ -75,7 +68,6 @@ const AppRoutes = () => {
   );
 };
 
-// Create QueryClient instance outside of the component
 const queryClient = new QueryClient();
 
 const App = () => {

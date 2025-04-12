@@ -18,13 +18,17 @@ import {
 import VisualSuggestions from '@/components/VisualSuggestions';
 import { Button } from '@/components/ui/button';
 import { Info, Database, BarChart, Clock } from 'lucide-react';
-import { DatasetFile, VisualSuggestion } from '@/types/powerbi';
+import { DatasetFile, VisualSuggestion, VisualAIRequest } from '@/types/powerbi';
 import { generateVisualSuggestions } from '@/utils/visualSuggestions';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const PowerBiSuggestions = () => {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
   const [visualSuggestions, setVisualSuggestions] = useState<VisualSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUsingAI, setIsUsingAI] = useState(true);
+  const { user, queryUsage, incrementQueryUsage, getQueryLimit } = useAuth();
 
   // Track page visit
   React.useEffect(() => {
@@ -56,7 +60,45 @@ const PowerBiSuggestions = () => {
     setVisualSuggestions([]);
   };
 
-  const handleGenerateSuggestions = () => {
+  const generateAISuggestions = async () => {
+    if (!incrementQueryUsage()) {
+      if (user) {
+        toast.error(`You've reached your limit of ${getQueryLimit()} queries per hour. Please try again later.`);
+      } else {
+        toast.error(`You've reached the guest limit of ${getQueryLimit()} queries per hour. Sign in for higher limits.`);
+      }
+      return [];
+    }
+
+    try {
+      const request: VisualAIRequest = {
+        datasets: datasets.map(dataset => ({
+          name: dataset.file.name.replace(/\.csv$/, ''),
+          headers: dataset.headers,
+          dataTypes: dataset.dataTypes,
+          sampleRows: dataset.rows.slice(0, 5)
+        }))
+      };
+
+      const { data, error } = await supabase.functions.invoke('generate-visuals', {
+        body: request
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data && data.suggestions) {
+        return data.suggestions;
+      } else {
+        throw new Error('Failed to generate visualization suggestions');
+      }
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
+  const handleGenerateSuggestions = async () => {
     if (datasets.length === 0) {
       toast.error('Please upload at least one dataset first');
       return;
@@ -65,19 +107,32 @@ const PowerBiSuggestions = () => {
     setIsLoading(true);
     
     try {
-      // Generate visual suggestions for each dataset
-      const allSuggestions: VisualSuggestion[] = [];
+      let allSuggestions: VisualSuggestion[] = [];
       
-      datasets.forEach(dataset => {
-        const suggestions = generateVisualSuggestions(dataset);
-        allSuggestions.push(...suggestions);
-      });
+      if (isUsingAI) {
+        // Use AI to generate suggestions
+        allSuggestions = await generateAISuggestions();
+      } else {
+        // Use rule-based logic to generate suggestions
+        datasets.forEach(dataset => {
+          const suggestions = generateVisualSuggestions(dataset);
+          allSuggestions.push(...suggestions);
+        });
+      }
       
       setVisualSuggestions(allSuggestions);
       toast.success(`Generated ${allSuggestions.length} visualization suggestions`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating suggestions:', error);
-      toast.error('Failed to generate visualization suggestions');
+      toast.error(`Failed to generate visualization suggestions: ${error.message}`);
+      
+      // Fallback to rule-based logic if AI fails
+      if (isUsingAI) {
+        toast.info('Falling back to basic suggestion logic');
+        setIsUsingAI(false);
+        handleGenerateSuggestions();
+        return;
+      }
     } finally {
       setIsLoading(false);
     }
@@ -87,6 +142,13 @@ const PowerBiSuggestions = () => {
     setDatasets(prev => prev.filter(dataset => dataset.file.name !== filename));
     setVisualSuggestions([]);
     toast.success(`Removed dataset: ${filename}`);
+  };
+
+  const toggleAIMode = () => {
+    setIsUsingAI(!isUsingAI);
+    toast.info(isUsingAI 
+      ? 'Switched to rule-based visualization suggestions' 
+      : 'Switched to AI-powered visualization suggestions');
   };
 
   return (
@@ -102,8 +164,18 @@ const PowerBiSuggestions = () => {
             </h1>
           </div>
           <p className="text-gray-600 dark:text-gray-300 mt-2 max-w-2xl mx-auto">
-            Upload your CSV datasets and get AI-generated Power BI visualization suggestions based on your data.
+            Upload your CSV datasets and get {isUsingAI ? 'AI-generated' : ''} Power BI visualization suggestions based on your data.
           </p>
+          <div className="mt-2 flex justify-center">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-xs"
+              onClick={toggleAIMode}
+            >
+              {isUsingAI ? 'Using AI Suggestions' : 'Using Basic Suggestions'}
+            </Button>
+          </div>
         </div>
         
         <div className="grid gap-8">
@@ -205,7 +277,7 @@ const PowerBiSuggestions = () => {
                     ) : (
                       <>
                         <BarChart className="mr-2 h-4 w-4" />
-                        Generate Visualization Suggestions
+                        Generate {isUsingAI ? 'AI' : ''} Visualization Suggestions
                       </>
                     )}
                   </Button>
