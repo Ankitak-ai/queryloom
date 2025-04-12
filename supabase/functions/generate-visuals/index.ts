@@ -24,39 +24,50 @@ serve(async (req) => {
   try {
     const { datasets } = await req.json();
     
-    // Check if OpenAI API key is available - use api_key instead of OPENAI_API_KEY
+    // Get the OpenAI API key from Supabase secrets
     const openaiApiKey = Deno.env.get("api_key");
     if (!openaiApiKey) {
       console.error("OpenAI API key not found in Supabase secrets");
       throw new Error("OpenAI API key is not configured. Please set the api_key in your Supabase secrets.");
     }
 
-    // Prepare the prompt for the AI
+    // Format dataset schema for the prompt
+    const datasetDescriptions = datasets.map((dataset: any) => {
+      const schema = Object.entries(dataset.dataTypes)
+        .map(([col, type]) => `${col}: ${type}`)
+        .join('\n');
+      
+      const sampleData = dataset.sampleRows.slice(0, 5);
+      
+      return `
+Dataset: ${dataset.name}
+Schema:
+${schema}
+
+Sample Data:
+${JSON.stringify(sampleData, null, 2)}
+      `;
+    }).join('\n\n');
+
+    // Create a more structured prompt based on the example
     const prompt = `
-      I have the following datasets:
-      ${datasets.map((dataset: any) => `
-        Dataset: ${dataset.name}
-        Headers: ${dataset.headers.join(', ')}
-        Data Types: ${Object.entries(dataset.dataTypes).map(([header, type]) => `${header}: ${type}`).join(', ')}
-        Sample Rows: 
-        ${dataset.sampleRows.map((row: any) => row.join(', ')).join('\n')}
-      `).join('\n\n')}
+You are a data visualization expert specializing in Power BI. Based on the following dataset schema and samples, suggest 6 to 8 insightful charts that can be created in Power BI.
 
-      As a data visualization expert, suggest the best Power BI visualizations for these datasets. 
-      For each suggestion:
-      1. Provide a descriptive chart name
-      2. Explain why this visualization is appropriate
-      3. Specify the type of Power BI visual to use
-      4. Map dataset fields to the visual's required fields (e.g., x-axis, y-axis, legend)
+${datasetDescriptions}
 
-      Return your response as a JSON array with each suggestion having these properties:
-      - chart_name: string (descriptive name of the chart)
-      - description: string (why this chart makes sense for the data)
-      - visual_type: string (the Power BI visual type)
-      - mapped_fields: object (mapping of field roles to dataset columns)
+Provide each suggestion with:
+- Chart Type
+- Chart Title
+- Description of Insight
+- Mapped Fields: (x-axis, y-axis, legend, tooltips, filters, etc.)
 
-      Provide at least 5 different visualization suggestions that best represent insights from the data.
-    `;
+Ensure the chart types are appropriate for the data types and uncover trends, comparisons, or insights effectively.
+Return the suggestions as a well-formatted JSON array with each suggestion having these properties:
+- chart_name: string (descriptive name of the chart)
+- description: string (why this chart makes sense for the data)
+- visual_type: string (the Power BI visual type)
+- mapped_fields: object (mapping of field roles to dataset columns)
+`;
 
     console.log("Sending request to OpenAI API");
     const response = await fetch(
@@ -72,15 +83,18 @@ serve(async (req) => {
           messages: [
             {
               role: "system",
-              content: "You are a data visualization expert specializing in Power BI. Your task is to analyze datasets and suggest the most appropriate visualizations."
+              content: "You are a data visualization expert specializing in Power BI. Your task is to analyze datasets and suggest the most appropriate visualizations formatted as a JSON array."
             },
             {
               role: "user",
               content: prompt
             }
           ],
-          temperature: 0.7,
-          max_tokens: 2000
+          temperature: 0.6,
+          top_p: 0.7,
+          max_tokens: 2048,
+          frequency_penalty: 0,
+          presence_penalty: 0
         }),
       }
     );
@@ -103,13 +117,20 @@ serve(async (req) => {
       // Try to parse the entire response as JSON
       suggestions = JSON.parse(aiResponse);
     } catch (e) {
+      console.log("Failed to parse JSON response directly, attempting to extract from markdown");
       // If that fails, try to extract JSON from a code block
       const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (jsonMatch && jsonMatch[1]) {
-        suggestions = JSON.parse(jsonMatch[1].trim());
+        try {
+          suggestions = JSON.parse(jsonMatch[1].trim());
+        } catch (e2) {
+          console.error("Failed to parse JSON from markdown code block:", e2);
+          throw new Error("Could not parse AI response as JSON");
+        }
       } else {
-        // If still no JSON found, fall back to rule-based suggestions
-        throw new Error("Could not parse AI response");
+        // If no obvious JSON pattern is found, attempt to convert the response to structured format
+        console.log("No JSON code block found, attempting to structure the response");
+        suggestions = convertTextToStructuredFormat(aiResponse);
       }
     }
 
@@ -125,3 +146,72 @@ serve(async (req) => {
     );
   }
 });
+
+/**
+ * Attempts to convert a text-based chart suggestion response to structured format
+ * when JSON parsing fails
+ */
+function convertTextToStructuredFormat(text: string): VisualSuggestion[] {
+  const suggestions: VisualSuggestion[] = [];
+  
+  // Look for numbered sections like "1." or "1:" or "Chart 1:" etc.
+  const sections = text.split(/(?:\n|^)(?:\d+[\.:)]|Chart \d+:)\s+/g).filter(s => s.trim().length > 0);
+  
+  for (const section of sections) {
+    try {
+      // Extract chart type and title
+      const typeMatch = section.match(/(?:Chart Type|Type):\s*([^\n]+)/i);
+      const titleMatch = section.match(/(?:Chart Title|Title):\s*([^\n]+)/i);
+      const descMatch = section.match(/(?:Description|Description of Insight):\s*([^\n]+(?:\n[^\n]+)*?)(?:\n\s*(?:-|•|\*|\d+\.)|\n\s*Mapped Fields|\n\s*$)/i);
+      
+      // If we can't find these basic elements, skip this section
+      if (!typeMatch && !titleMatch) continue;
+      
+      const chartType = typeMatch ? typeMatch[1].trim() : "Unknown Chart";
+      const chartName = titleMatch ? titleMatch[1].trim() : "Untitled Chart";
+      const description = descMatch ? descMatch[1].trim() : "";
+      
+      // Extract mapped fields - this is more complex as it can span multiple lines
+      const mappedFields: Record<string, string | string[]> = {};
+      const fieldsSection = section.match(/Mapped Fields:?\s*([\s\S]+?)(?:\n\s*$|\n\s*\n|$)/i);
+      
+      if (fieldsSection) {
+        const fieldLines = fieldsSection[1].split('\n');
+        for (const line of fieldLines) {
+          // Look for patterns like "X-axis: OrderDate" or "- X-axis: OrderDate"
+          const fieldMatch = line.match(/(?:-|\*|•)?\s*(?:([^:]+):\s*(.+))/);
+          if (fieldMatch) {
+            const [, fieldName, fieldValue] = fieldMatch;
+            if (fieldName && fieldValue) {
+              const fieldKey = fieldName.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+              mappedFields[fieldKey] = fieldValue.trim();
+            }
+          }
+        }
+      }
+      
+      suggestions.push({
+        chart_name: chartName,
+        description: description,
+        visual_type: chartType,
+        mapped_fields: mappedFields
+      });
+    } catch (e) {
+      console.error("Error parsing section:", e);
+      continue; // Skip this section if there's an error
+    }
+  }
+  
+  // If we couldn't extract any suggestions, create a fallback
+  if (suggestions.length === 0) {
+    console.log("Could not extract structured suggestions from text, using fallback");
+    suggestions.push({
+      chart_name: "Data Overview",
+      description: "A general overview of the dataset based on available fields.",
+      visual_type: "Table",
+      mapped_fields: { columns: "All available fields" }
+    });
+  }
+  
+  return suggestions;
+}
