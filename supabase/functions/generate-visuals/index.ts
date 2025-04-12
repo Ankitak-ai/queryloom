@@ -24,11 +24,11 @@ serve(async (req) => {
   try {
     const { datasets } = await req.json();
     
-    // Check if OpenAI API key is available
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY") || Deno.env.get("open_key");
+    // Check if OpenAI API key is available - use api_key instead of OPENAI_API_KEY
+    const openaiApiKey = Deno.env.get("api_key");
     if (!openaiApiKey) {
-      console.error("OpenAI API key is not configured");
-      throw new Error("OpenAI API key is not configured. Please set the OPENAI_API_KEY in your Supabase secrets.");
+      console.error("OpenAI API key not found in Supabase secrets");
+      throw new Error("OpenAI API key is not configured. Please set the api_key in your Supabase secrets.");
     }
 
     // Prepare the prompt for the AI
