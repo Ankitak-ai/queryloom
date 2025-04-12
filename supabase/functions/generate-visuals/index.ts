@@ -52,7 +52,7 @@ serve(async (req) => {
     `;
 
     // Use the same endpoint as generate-sql but with different prompt
-    const { data, error } = await fetch(
+    const response = await fetch(
       Deno.env.get("EXTERNAL_AI_SERVICE_URL") || "https://api.openai.com/v1/chat/completions",
       {
         method: "POST",
@@ -76,11 +76,15 @@ serve(async (req) => {
           max_tokens: 2000
         }),
       }
-    ).then(res => res.json());
+    );
 
-    if (error) {
-      throw new Error(error);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(JSON.stringify(errorData));
     }
+
+    const data = await response.json();
 
     // Extract suggestions from the AI response
     const aiResponse = data.choices[0].message.content;
@@ -108,7 +112,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in generate-visuals function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'Unknown error occurred' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
