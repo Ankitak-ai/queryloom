@@ -49,19 +49,24 @@ ${JSON.stringify(sampleData, null, 2)}
       `;
     }).join('\n\n');
 
-    // Create a more structured prompt based on the example
+    // Use a more structured prompt for better visualization suggestions
     const prompt = `
 You are a data visualization expert specializing in Power BI. Based on the following dataset schema and samples, suggest 6 to 8 insightful charts that can be created in Power BI.
 
 ${datasetDescriptions}
 
 Provide each suggestion with:
-- Chart Type
-- Chart Title
-- Description of Insight
-- Mapped Fields: (x-axis, y-axis, legend, tooltips, filters, etc.)
+- Chart Type (use standard Power BI visualization types)
+- Chart Title (descriptive and specific to the data)
+- Description of Insight (why this visualization is useful)
+- Mapped Fields: (x-axis, y-axis, legend, tooltips, filters, etc. mapped to specific columns from the dataset)
 
-Ensure the chart types are appropriate for the data types and uncover trends, comparisons, or insights effectively.
+Ensure the chart types are appropriate for the data types. Focus on visualizations that:
+- Uncover trends over time if date fields exist
+- Compare values across categories 
+- Show distributions or relationships between numerical fields
+- Highlight key performance indicators
+
 Return the suggestions as a well-formatted JSON array with each suggestion having these properties:
 - chart_name: string (descriptive name of the chart)
 - description: string (why this chart makes sense for the data)
@@ -101,7 +106,7 @@ Return the suggestions as a well-formatted JSON array with each suggestion havin
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
+      console.error('OpenAI API error:', JSON.stringify(errorData));
       throw new Error(`OpenAI API error: ${JSON.stringify(errorData)}`);
     }
 
