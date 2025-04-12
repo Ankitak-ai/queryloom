@@ -1,7 +1,14 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { VisualSuggestion } from "../../../src/types/powerbi.ts";
+
+// Define types locally for the edge function
+interface VisualSuggestion {
+  chart_name: string;
+  description: string;
+  visual_type: string;
+  mapped_fields: Record<string, string | string[]>;
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
