@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Reviews from "./pages/Reviews";
+import PowerBiSuggestions from "./pages/PowerBiSuggestions";
 
 // Protected route component that redirects to Index if authenticated
 const AuthRoute = ({ element }: { element: React.ReactNode }) => {
@@ -64,6 +65,7 @@ const AppRoutes = () => {
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthRoute element={<Auth />} />} />
             <Route path="/reviews" element={<Reviews />} />
+            <Route path="/powerbi" element={<PowerBiSuggestions />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
