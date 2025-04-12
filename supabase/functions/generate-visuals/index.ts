@@ -23,6 +23,13 @@ serve(async (req) => {
 
   try {
     const { datasets } = await req.json();
+    
+    // Check if OpenAI API key is available
+    const openaiApiKey = Deno.env.get("OPENAI_API_KEY") || Deno.env.get("open_key");
+    if (!openaiApiKey) {
+      console.error("OpenAI API key is not configured");
+      throw new Error("OpenAI API key is not configured. Please set the OPENAI_API_KEY in your Supabase secrets.");
+    }
 
     // Prepare the prompt for the AI
     const prompt = `
@@ -51,14 +58,14 @@ serve(async (req) => {
       Provide at least 5 different visualization suggestions that best represent insights from the data.
     `;
 
-    // Use the same endpoint as generate-sql but with different prompt
+    console.log("Sending request to OpenAI API");
     const response = await fetch(
-      Deno.env.get("EXTERNAL_AI_SERVICE_URL") || "https://api.openai.com/v1/chat/completions",
+      "https://api.openai.com/v1/chat/completions",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`,
+          "Authorization": `Bearer ${openaiApiKey}`,
         },
         body: JSON.stringify({
           model: "gpt-4o",
@@ -81,10 +88,11 @@ serve(async (req) => {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('OpenAI API error:', errorData);
-      throw new Error(JSON.stringify(errorData));
+      throw new Error(`OpenAI API error: ${JSON.stringify(errorData)}`);
     }
 
     const data = await response.json();
+    console.log("Received response from OpenAI API");
 
     // Extract suggestions from the AI response
     const aiResponse = data.choices[0].message.content;

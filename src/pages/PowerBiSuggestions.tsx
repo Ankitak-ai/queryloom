@@ -28,6 +28,7 @@ const PowerBiSuggestions = () => {
   const [visualSuggestions, setVisualSuggestions] = useState<VisualSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUsingAI, setIsUsingAI] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
   const { user, queryUsage, incrementQueryUsage, getQueryLimit } = useAuth();
 
   // Track page visit
@@ -58,6 +59,7 @@ const PowerBiSuggestions = () => {
     
     setDatasets(newDatasets);
     setVisualSuggestions([]);
+    setApiError(null);
   };
 
   const generateAISuggestions = async () => {
@@ -85,15 +87,20 @@ const PowerBiSuggestions = () => {
       });
 
       if (error) {
-        throw new Error(error.message);
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to generate visualization suggestions');
       }
 
       if (data && data.suggestions) {
+        setApiError(null);
         return data.suggestions;
+      } else if (data && data.error) {
+        throw new Error(data.error);
       } else {
         throw new Error('Failed to generate visualization suggestions');
       }
     } catch (error: any) {
+      setApiError(error.message);
       throw error;
     }
   };
@@ -105,13 +112,31 @@ const PowerBiSuggestions = () => {
     }
 
     setIsLoading(true);
+    setApiError(null);
     
     try {
       let allSuggestions: VisualSuggestion[] = [];
       
       if (isUsingAI) {
         // Use AI to generate suggestions
-        allSuggestions = await generateAISuggestions();
+        try {
+          allSuggestions = await generateAISuggestions();
+        } catch (error: any) {
+          console.error('Error generating AI suggestions:', error);
+          toast.error(`AI suggestion failed: ${error.message}`);
+          
+          // Fallback to rule-based logic if AI fails
+          if (isUsingAI) {
+            toast.info('Falling back to basic suggestion logic');
+            setIsUsingAI(false);
+            
+            // Generate rule-based suggestions
+            datasets.forEach(dataset => {
+              const suggestions = generateVisualSuggestions(dataset);
+              allSuggestions.push(...suggestions);
+            });
+          }
+        }
       } else {
         // Use rule-based logic to generate suggestions
         datasets.forEach(dataset => {
@@ -121,18 +146,14 @@ const PowerBiSuggestions = () => {
       }
       
       setVisualSuggestions(allSuggestions);
-      toast.success(`Generated ${allSuggestions.length} visualization suggestions`);
+      if (allSuggestions.length > 0) {
+        toast.success(`Generated ${allSuggestions.length} visualization suggestions`);
+      } else {
+        toast.warning('No visualization suggestions could be generated');
+      }
     } catch (error: any) {
       console.error('Error generating suggestions:', error);
       toast.error(`Failed to generate visualization suggestions: ${error.message}`);
-      
-      // Fallback to rule-based logic if AI fails
-      if (isUsingAI) {
-        toast.info('Falling back to basic suggestion logic');
-        setIsUsingAI(false);
-        handleGenerateSuggestions();
-        return;
-      }
     } finally {
       setIsLoading(false);
     }
@@ -141,6 +162,7 @@ const PowerBiSuggestions = () => {
   const handleRemoveDataset = (filename: string) => {
     setDatasets(prev => prev.filter(dataset => dataset.file.name !== filename));
     setVisualSuggestions([]);
+    setApiError(null);
     toast.success(`Removed dataset: ${filename}`);
   };
 
@@ -193,6 +215,24 @@ const PowerBiSuggestions = () => {
               <FileUpload onFilesUploaded={handleFilesUploaded} />
             </CardContent>
           </Card>
+          
+          {apiError && (
+            <Card className="border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800">
+              <CardHeader>
+                <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
+                  <Info className="h-5 w-5" />
+                  <span>Error from AI Service</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-red-600 dark:text-red-400">{apiError}</p>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">
+                  The application has automatically switched to basic suggestions. 
+                  Please try again later or contact support if the issue persists.
+                </p>
+              </CardContent>
+            </Card>
+          )}
           
           {datasets.length > 0 && (
             <Card>
