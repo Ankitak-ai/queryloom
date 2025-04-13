@@ -62,11 +62,12 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
       return false;
     }
     
-    // Check if the only field is "fields" with value "Relevant Fields"
+    // Check if the only field is "fields" with generic recommendation text
     if (
       Object.keys(mappedFields).length === 1 && 
       Object.keys(mappedFields)[0] === 'fields' && 
-      mappedFields['fields'] === 'Relevant Fields'
+      typeof mappedFields['fields'] === 'string' &&
+      mappedFields['fields'].includes('depend on your specific data structure')
     ) {
       return false;
     }
@@ -79,6 +80,13 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
     return visualType === 'Unknown' ? 'Visualization' : visualType;
   };
 
+  // Filter out any duplicate or invalid suggestions
+  const validSuggestions = suggestions.filter(suggestion => 
+    suggestion.chart_name && 
+    suggestion.chart_name !== 'Unknown' &&
+    suggestion.visual_type
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -89,7 +97,7 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {suggestions.map((suggestion, index) => (
+          {validSuggestions.map((suggestion, index) => (
             <Card 
               key={index} 
               className={cn("overflow-hidden", getCardColor(suggestion.visual_type))}
