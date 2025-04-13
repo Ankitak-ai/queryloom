@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
@@ -26,38 +26,31 @@ const AuthRoute = ({ element }: { element: React.ReactNode }) => {
   return user ? <Navigate to="/" replace /> : element;
 };
 
+// SEO component for dynamic canonical URLs
+const SEO = () => {
+  const location = useLocation();
+  const baseUrl = "https://queryloom.fun";
+  const canonicalUrl = `${baseUrl}${location.pathname === "/" ? "" : location.pathname}`;
+  
+  return (
+    <Helmet>
+      <link rel="canonical" href={canonicalUrl} />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="icon" href="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
+      <meta name="theme-color" content="#6d28d9" />
+      <meta name="google-site-verification" content="o9nQaP1kCVl6QKWRZAhlk13A7GU12Teb9jlzWrO3gvw" />
+      
+      {/* Rest of your meta tags will be set in page-specific components */}
+    </Helmet>
+  );
+};
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
-      <Helmet>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="icon" href="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
-        <meta name="theme-color" content="#6d28d9" />
-        <meta name="google-site-verification" content="o9nQaP1kCVl6QKWRZAhlk13A7GU12Teb9jlzWrO3gvw" />
-        <title>QueryLoom - Weaving natural language into SQL queries seamlessly</title>
-        <meta name="description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
-        
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://queryloom.fun" />
-        <meta property="og:site_name" content="QueryLoom" />
-        <meta property="og:title" content="QueryLoom - Weaving natural language into SQL queries seamlessly" />
-        <meta property="og:description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
-        <meta property="og:image" content="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="en_US" />
-        
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@queryloom" />
-        <meta name="twitter:title" content="QueryLoom - Weaving natural language into SQL queries seamlessly" />
-        <meta name="twitter:description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
-        <meta name="twitter:image" content="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
-        <meta name="twitter:domain" content="queryloom.fun" />
-      </Helmet>
       <TooltipProvider>
         <AuthProvider>
+          <SEO />
           <Toaster />
           <Sonner />
           <Routes>
@@ -79,7 +72,9 @@ const queryClient = new QueryClient();
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppRoutes />
+      <HelmetProvider>
+        <AppRoutes />
+      </HelmetProvider>
     </QueryClientProvider>
   );
 };
