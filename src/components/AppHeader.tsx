@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogIn, LogOut, UserPlus, MessageSquare, BarChart2 } from 'lucide-react';
+import { LogIn, LogOut, UserPlus, MessageSquare } from 'lucide-react';
 
 const AppHeader: React.FC = () => {
   const { user, displayName, signOut, loading } = useAuth();
@@ -45,13 +45,6 @@ const AppHeader: React.FC = () => {
               className={`text-sm ${location.pathname === '/' ? 'text-purple-600 font-medium' : 'text-gray-600 hover:text-purple-600'}`}
             >
               Home
-            </Link>
-            <Link 
-              to="/powerbi" 
-              className={`text-sm flex items-center gap-1 ${location.pathname === '/powerbi' ? 'text-purple-600 font-medium' : 'text-gray-600 hover:text-purple-600'}`}
-            >
-              <BarChart2 size={14} />
-              <span>Power BI</span>
             </Link>
             <Link 
               to="/reviews" 

@@ -38,6 +38,9 @@ const Index = () => {
   const navigate = useNavigate();
   const sqlDisplayRef = useRef<HTMLDivElement>(null);
 
+  const remainingQueries = getQueryLimit() - queryUsage.count;
+  const resetTime = new Date(queryUsage.resetTime);
+
   useEffect(() => {
     trackPageVisit('/');
   }, []);
@@ -101,7 +104,14 @@ const Index = () => {
       return;
     }
     
-    incrementQueryUsage();
+    if (!incrementQueryUsage()) {
+      if (user) {
+        toast.error(`You've reached your limit of ${getQueryLimit()} queries per hour. Please try again later.`);
+      } else {
+        toast.error(`You've reached the guest limit of ${getQueryLimit()} queries per hour. Sign in for higher limits.`);
+      }
+      return;
+    }
     
     setIsGenerating(true);
     setNaturalLanguageQuery(query);
@@ -190,6 +200,43 @@ const Index = () => {
             </div>
           </div>
         </div>
+        
+        {!user && (
+          <Alert className="mb-8 bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
+            <Info className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+            <AlertDescription className="text-sm text-yellow-700 dark:text-yellow-300">
+              You're currently using the guest tier with {getQueryLimit()} queries per hour. 
+              <Button 
+                variant="link" 
+                className="text-purple-600 dark:text-purple-400 p-0 h-auto font-medium" 
+                onClick={() => navigate('/auth')}
+              >
+                Sign in
+              </Button> to get {QUERY_LIMIT_USER} queries per hour.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {remainingQueries === 0 && (
+          <Alert className="mb-8 bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800">
+            <Info className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <AlertDescription className="text-sm text-red-700 dark:text-red-300">
+              You've reached your query limit for this hour. Your limit will reset at {resetTime.toLocaleTimeString()}.
+              {!user && (
+                <span>
+                  {' '}
+                  <Button 
+                    variant="link" 
+                    className="text-purple-600 dark:text-purple-400 p-0 h-auto font-medium" 
+                    onClick={() => navigate('/auth')}
+                  >
+                    Sign in
+                  </Button> to get more queries.
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
         
         <div className="grid gap-8">
           <FileUpload onFilesUploaded={handleFilesUploaded} />
