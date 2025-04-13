@@ -19,33 +19,28 @@ const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerat
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <History size={18} className="text-purple-600" />
-          Query Limits
+          Query Usage
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div>
-            <p className="text-sm font-medium mb-1">Usage this hour:</p>
+            <p className="text-sm font-medium mb-1">Queries made this session:</p>
             <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
               <div 
                 className="bg-purple-600 h-2.5 rounded-full" 
-                style={{ width: `${(queryUsage.count / getQueryLimit()) * 100}%` }}
+                style={{ width: `${Math.min((queryUsage.count / 100) * 100, 100)}%` }}
               ></div>
             </div>
           </div>
           
           <div className="grid gap-2">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium">{remainingQueries}</span> of <span className="font-medium">{getQueryLimit()}</span> queries remaining
+              <span className="font-medium">{queryUsage.count}</span> queries made
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Limit resets at: <span className="font-medium">{resetTime.toLocaleTimeString()}</span>
+              <span className="font-medium text-green-600">Unlimited queries enabled</span>
             </p>
-            {!user && (
-              <p className="text-xs text-purple-600 dark:text-purple-400 mt-2">
-                Sign in to increase your query limit from 2 to 10 per hour
-              </p>
-            )}
           </div>
         </div>
       </CardContent>
