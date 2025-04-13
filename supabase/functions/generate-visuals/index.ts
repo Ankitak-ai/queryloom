@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -113,14 +112,17 @@ Format each visualization suggestion clearly with headings and ensure the mapped
 
     // Extract suggestions from the AI response
     const aiResponse = data.choices[0].message.content;
-    console.log("AI response content:", aiResponse);
+    console.log("AI response content received");
     
     // Parse the response into structured suggestions
     let suggestions: VisualSuggestion[] = [];
     
     try {
-      // Attempt to extract chart suggestions from the response text
-      suggestions = parseChartSuggestions(aiResponse);
+      // Clean the response text before parsing
+      const cleanedResponse = cleanResponseText(aiResponse);
+      
+      // Attempt to extract chart suggestions from the cleaned response text
+      suggestions = parseChartSuggestions(cleanedResponse);
       console.log(`Successfully parsed ${suggestions.length} chart suggestions`);
     } catch (error) {
       console.error("Error parsing chart suggestions:", error);
@@ -149,62 +151,80 @@ Format each visualization suggestion clearly with headings and ensure the mapped
 });
 
 /**
+ * Cleans the response text by removing problematic patterns and irrelevant text
+ */
+function cleanResponseText(text: string): string {
+  // Remove the "Unknown" text that sometimes appears at the beginning
+  let cleanedText = text.replace(/^Unknown\s+/i, '');
+  
+  // Remove phrases like "Below are 6 to 8 insightful chart suggestions" that sometimes appear
+  cleanedText = cleanedText.replace(/Below are \d+ to \d+ insightful chart suggestions.+?formatted as requested:?\s*/i, '');
+  
+  // Remove any duplicate sections of "ful chart suggestions..."
+  cleanedText = cleanedText.replace(/ful chart suggestions.+?formatted as requested:?\s*/gi, '');
+  
+  // Remove any remaining prefixes like "Here are the chart suggestions:"
+  cleanedText = cleanedText.replace(/^(Here are|Following are)\s+the\s+chart suggestions:?\s*/i, '');
+  
+  // Remove any markdown-style list numbering
+  cleanedText = cleanedText.replace(/^\d+\.\s+/gm, '');
+  
+  // Normalize double line breaks to ensure consistent section parsing
+  cleanedText = cleanedText.replace(/\n{3,}/g, '\n\n');
+  
+  return cleanedText;
+}
+
+/**
  * Parses the AI-generated text to extract structured chart suggestions
  */
 function parseChartSuggestions(text: string): VisualSuggestion[] {
   const suggestions: VisualSuggestion[] = [];
   
   try {
-    // First try to find numbered chart sections
-    const regex = /(?:\d+\.\s+|###\s*|##\s*|\*\*Chart\s+\d+\*\*:\s*|\*\*\d+\.\s*)/i;
-    const chartSections = text.split(regex).filter(section => section && section.trim().length > 10);
+    // First try to find chart sections by visual type + chart name pattern
+    const visualTypeRegex = /(Bar Chart|Line Chart|Pie Chart|Area Chart|Scatter Chart|Waterfall Chart|Box Plot|Histogram|Table|Card|Gauge|Stacked Column Chart|Stacked Bar Chart|Treemap|Map|Scatter Plot)/gi;
     
-    if (chartSections.length <= 1) {
-      // If we don't find chart sections, try a different approach
-      console.log("Didn't find expected chart sections, trying alternative parsing");
+    // Split by chart type headers
+    const chartSections = text.split(visualTypeRegex);
+    
+    // If we found chart sections using the regex
+    if (chartSections.length > 1) {
+      const visualTypes = text.match(visualTypeRegex) || [];
       
-      // Look for chart types as section headers
-      const chartTypeRegex = /(?:Bar Chart|Line Chart|Pie Chart|Area Chart|Scatter Chart|Waterfall Chart|Box Plot|Histogram|Table|Card|Gauge)/gi;
-      let match;
-      let lastIndex = 0;
-      const matches = [];
-      
-      while ((match = chartTypeRegex.exec(text)) !== null) {
-        const sectionStart = match.index;
+      for (let i = 0; i < visualTypes.length; i++) {
+        // The section content follows the chart type in the split array
+        const sectionContent = chartSections[i + 1];
         
-        // If this isn't the first match, add the previous section
-        if (lastIndex > 0) {
-          const section = text.substring(lastIndex, sectionStart).trim();
-          if (section.length > 0) {
-            matches.push(section);
+        if (sectionContent && sectionContent.trim()) {
+          try {
+            const suggestion = parseSingleChartSection(visualTypes[i], sectionContent);
+            if (suggestion) {
+              suggestions.push(suggestion);
+            }
+          } catch (e) {
+            console.error(`Error parsing section with visual type ${visualTypes[i]}:`, e);
           }
         }
-        
-        lastIndex = sectionStart;
-      }
-      
-      // Add the last section
-      if (lastIndex > 0 && lastIndex < text.length) {
-        const section = text.substring(lastIndex).trim();
-        if (section.length > 0) {
-          matches.push(section);
-        }
-      }
-      
-      if (matches.length > 0) {
-        for (const section of matches) {
-          parseSection(section, suggestions);
-        }
-      } else {
-        // If we still don't find sections, try to parse the whole text
-        parseSection(text, suggestions);
       }
     } else {
-      console.log(`Found ${chartSections.length} chart sections`);
-      // Process each chart section we found
-      for (const section of chartSections) {
-        if (section.trim().length > 0) {
-          parseSection(section, suggestions);
+      // Fallback to looking for "Mapped Fields" as section separators
+      const mappedFieldsRegex = /Mapped Fields/gi;
+      const sections = text.split(mappedFieldsRegex);
+      
+      // Skip the first section if it doesn't contain useful information
+      const startIndex = sections[0].trim().length < 10 ? 1 : 0;
+      
+      for (let i = startIndex; i < sections.length; i++) {
+        const section = (i === startIndex && startIndex > 0) ? sections[i] : "Mapped Fields" + sections[i];
+        
+        try {
+          const suggestion = parseUnstructuredSection(section);
+          if (suggestion) {
+            suggestions.push(suggestion);
+          }
+        } catch (e) {
+          console.error(`Error parsing unstructured section ${i}:`, e);
         }
       }
     }
@@ -227,119 +247,135 @@ function parseChartSuggestions(text: string): VisualSuggestion[] {
 }
 
 /**
- * Parse an individual chart section and add it to suggestions
+ * Parses a single chart section when we know the visual type
  */
-function parseSection(section: string, suggestions: VisualSuggestion[]): void {
+function parseSingleChartSection(visualType: string, sectionContent: string): VisualSuggestion | null {
   try {
-    console.log("Parsing section:", section.substring(0, 100) + "...");
+    // Extract chart name/title - it's usually the first line after the chart type
+    const chartNameMatch = sectionContent.match(/^([^\n]+)/);
+    const chartName = chartNameMatch ? chartNameMatch[1].trim() : "Untitled Chart";
     
-    // Extract chart type
-    let visualType = "Unknown";
-    const typeMatch = section.match(/(?:Chart Type|Type)(?:\*\*)?\s*:?\s*([^\n]+)/i) ||
-                      section.match(/^\s*(Bar Chart|Line Chart|Pie Chart|Area Chart|Scatter Chart|Waterfall Chart|Box Plot|Histogram|Table|Card|Gauge)/i);
-    
-    if (typeMatch) {
-      visualType = typeMatch[1].trim();
+    // Extract description - it's usually between the chart name and mapped fields
+    let description = "";
+    const descMatch = sectionContent.match(/\n(.*?)(?=\n\s*Mapped Fields|$)/s);
+    if (descMatch) {
+      description = descMatch[1].trim();
     }
     
-    // Extract chart name/title
+    // Extract mapped fields section
+    const mappedFields: Record<string, string | string[]> = {};
+    
+    // Look for field mappings patterns like "* x-axis: field_name" or "x-axis: field_name"
+    const fieldRegex = /[*•-]?\s*([^:*\n]+?):\s*([^\n]+)/g;
+    let fieldMatch;
+    
+    while ((fieldMatch = fieldRegex.exec(sectionContent)) !== null) {
+      const fieldName = fieldMatch[1].trim().toLowerCase().replace(/[-\s]+/g, '-');
+      let fieldValue = fieldMatch[2].trim().replace(/^\s*`|`\s*$/g, '');
+      
+      // Handle comma-separated lists
+      if (fieldValue.includes(',')) {
+        mappedFields[fieldName] = fieldValue.split(',').map(item => item.trim().replace(/^\s*`|`\s*$/g, ''));
+      } else {
+        mappedFields[fieldName] = fieldValue;
+      }
+    }
+    
+    // Only return if we have at least a chart name
+    if (chartName !== "Untitled Chart") {
+      return {
+        chart_name: chartName,
+        description: description || `A ${visualType} visualization.`,
+        visual_type: visualType.trim(),
+        mapped_fields: mappedFields
+      };
+    }
+  } catch (e) {
+    console.error("Error parsing chart section:", e);
+  }
+  
+  return null;
+}
+
+/**
+ * Parses an unstructured section when the format is less predictable
+ */
+function parseUnstructuredSection(section: string): VisualSuggestion | null {
+  try {
+    // First look for a visual type
+    let visualType = "Unknown";
+    const typeMatch = section.match(/\b(Bar Chart|Line Chart|Pie Chart|Area Chart|Scatter Chart|Waterfall Chart|Box Plot|Histogram|Table|Card|Gauge|Stacked Column Chart|Stacked Bar Chart|Treemap|Map|Scatter Plot)\b/i);
+    
+    if (typeMatch) {
+      visualType = typeMatch[1];
+    }
+    
+    // Look for a chart name - usually a sentence or phrase before "Mapped Fields"
     let chartName = "Untitled Chart";
-    const titleMatch = section.match(/(?:Chart Title|Title)(?:\*\*)?\s*:?\s*([^\n]+)/i) ||
-                      section.match(/^\s*(?:\*\*)?([^:*\n]+)(?:\*\*)?(?=\s*(?:\n|$|:))/m);
+    const titleMatch = section.match(/\*\*([^*\n]+?)\*\*/);
     
     if (titleMatch) {
       chartName = titleMatch[1].trim();
+    } else {
+      // Try to find the first sentence as a title
+      const firstLineMatch = section.match(/^([^\n.]+)/);
+      if (firstLineMatch) {
+        chartName = firstLineMatch[1].trim();
+      }
     }
     
-    // Extract description
+    // Look for a description
     let description = "";
-    const descMatch = section.match(/(?:Description(?:\s+of\s+Insight)?|Insight)(?:\*\*)?\s*:?\s*([^\n]+(?:\n[^*#\n]+)*)/i);
+    
+    // If we have "insight" or "description" in the section, extract that part
+    const descMatch = section.match(/\b(?:insight|description)\b:?\s*([^\n]+)/i);
     
     if (descMatch) {
       description = descMatch[1].trim();
+    } else {
+      // Otherwise, try to extract a sentence that could be a description
+      const potentialDesc = section.match(/\n([^*\n][^\n]+?)(?=\n|$)/);
+      if (potentialDesc) {
+        description = potentialDesc[1].trim();
+      }
     }
     
     // Extract mapped fields
     const mappedFields: Record<string, string | string[]> = {};
     
-    // Look for a "Mapped Fields" section
-    const fieldsSectionMatch = section.match(/Mapped Fields(?:\*\*)?\s*:?\s*([\s\S]+?)(?=(?:\n\s*(?:Chart Type|Type|Title|Description|Insight)|$))/i);
+    // Look for field mappings like "field: value" or "* field: value"
+    const fieldMatches = section.matchAll(/(?:^|\n)\s*(?:[*•-]\s*)?(?:([^:*\n]+?):\s*([^\n]+))/g);
     
-    if (fieldsSectionMatch) {
-      const fieldsSection = fieldsSectionMatch[1];
+    for (const match of fieldMatches) {
+      const fieldName = match[1].trim().toLowerCase().replace(/[-\s]+/g, '-');
+      let fieldValue = match[2].trim().replace(/^\s*`|`\s*$/g, '');
       
-      // Extract field mappings like "x-axis: field_name"
-      const fieldMatches = fieldsSection.matchAll(/(?:[•*-]\s*)?(?:\*\*)?([^:*\n]+?)(?:\*\*)?\s*:\s*([^\n]+)/gi);
-      
-      for (const match of fieldMatches) {
-        const [, fieldName, fieldValue] = match;
-        if (fieldName && fieldValue) {
-          const cleanFieldName = fieldName.trim().toLowerCase()
-            .replace(/[-\s]+/g, '-');
-          
-          let cleanFieldValue = fieldValue.trim()
-            .replace(/^\*\*|\*\*$/g, '');
-          
-          // Handle comma-separated lists
-          if (cleanFieldValue.includes(',')) {
-            mappedFields[cleanFieldName] = cleanFieldValue.split(',')
-              .map(item => item.trim());
-          } else {
-            mappedFields[cleanFieldName] = cleanFieldValue;
-          }
-        }
+      // Skip if the field name contains common chart titles or is too long
+      if (fieldName.includes('chart') || fieldName.includes('visualization') || 
+          fieldName.length > 30 || fieldName === 'mapped fields') {
+        continue;
       }
-    }
-    
-    // Bullet point parsing for mapped fields, if the previous method found nothing
-    if (Object.keys(mappedFields).length === 0) {
-      const bulletMatches = section.matchAll(/[•*-]\s*([^:]+):\s*([^\n]+)/g);
       
-      for (const match of bulletMatches) {
-        const [, fieldName, fieldValue] = match;
-        if (fieldName && fieldValue) {
-          const cleanFieldName = fieldName.trim().toLowerCase()
-            .replace(/[-\s]+/g, '-');
-          
-          let cleanFieldValue = fieldValue.trim();
-          
-          if (cleanFieldValue.includes(',')) {
-            mappedFields[cleanFieldName] = cleanFieldValue.split(',')
-              .map(item => item.trim());
-          } else {
-            mappedFields[cleanFieldName] = cleanFieldValue;
-          }
-        }
-      }
-    }
-    
-    // If we still have no mapped fields but there's a chart name, add a default mapping
-    if (Object.keys(mappedFields).length === 0 && chartName !== "Untitled Chart") {
-      if (visualType.toLowerCase().includes('bar') || visualType.toLowerCase().includes('column')) {
-        mappedFields['x-axis'] = 'Category Field';
-        mappedFields['y-axis'] = 'Value Field';
-      } else if (visualType.toLowerCase().includes('line')) {
-        mappedFields['x-axis'] = 'Time Field';
-        mappedFields['y-axis'] = 'Value Field';
-      } else if (visualType.toLowerCase().includes('pie')) {
-        mappedFields['legend'] = 'Category Field';
-        mappedFields['values'] = 'Value Field';
+      // Handle comma-separated lists
+      if (fieldValue.includes(',')) {
+        mappedFields[fieldName] = fieldValue.split(',').map(item => item.trim().replace(/^\s*`|`\s*$/g, ''));
       } else {
-        mappedFields['fields'] = 'Relevant Fields';
+        mappedFields[fieldName] = fieldValue;
       }
     }
     
-    // Add the suggestion if we have at least a chart name
+    // Only return if we have at least a chart name
     if (chartName !== "Untitled Chart") {
-      suggestions.push({
+      return {
         chart_name: chartName,
         description: description || `A ${visualType} visualization.`,
         visual_type: visualType,
         mapped_fields: mappedFields
-      });
-      console.log(`Added suggestion: ${chartName} (${visualType})`);
+      };
     }
   } catch (e) {
-    console.error("Error parsing section:", e);
+    console.error("Error parsing unstructured section:", e);
   }
+  
+  return null;
 }

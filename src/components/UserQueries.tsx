@@ -57,4 +57,3 @@ const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerat
 };
 
 export default UserQueries;
-

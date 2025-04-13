@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, BarChart2, LineChart, PieChart, Map, AlertTriangle } from 'lucide-react';
+import { BarChart, BarChart2, LineChart, PieChart, Map, AlertTriangle, ScatterChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface VisualSuggestionsProps {
@@ -29,6 +29,8 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
       return <PieChart className="h-6 w-6" />;
     } else if (type.includes('map')) {
       return <Map className="h-6 w-6" />;
+    } else if (type.includes('scatter')) {
+      return <ScatterChart className="h-6 w-6" />;
     } else {
       return <BarChart2 className="h-6 w-6" />;
     }
@@ -46,6 +48,8 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
       return 'bg-purple-50 dark:bg-purple-950';
     } else if (type.includes('map')) {
       return 'bg-amber-50 dark:bg-amber-950';
+    } else if (type.includes('scatter')) {
+      return 'bg-cyan-50 dark:bg-cyan-950';
     } else {
       return 'bg-gray-50 dark:bg-gray-900';
     }
@@ -53,7 +57,26 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
 
   // Helper to check if mapped fields has actual content
   const hasMappedFields = (mappedFields: Record<string, string | string[]>) => {
-    return Object.keys(mappedFields).length > 0;
+    // Check if there are any fields
+    if (Object.keys(mappedFields).length === 0) {
+      return false;
+    }
+    
+    // Check if the only field is "fields" with value "Relevant Fields"
+    if (
+      Object.keys(mappedFields).length === 1 && 
+      Object.keys(mappedFields)[0] === 'fields' && 
+      mappedFields['fields'] === 'Relevant Fields'
+    ) {
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Clean up visual type if needed
+  const cleanVisualType = (visualType: string) => {
+    return visualType === 'Unknown' ? 'Visualization' : visualType;
   };
 
   return (
@@ -73,7 +96,7 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
             >
               <CardHeader className={cn("pb-2")}>
                 <Badge variant="outline" className="self-start mb-2">
-                  {suggestion.visual_type}
+                  {cleanVisualType(suggestion.visual_type)}
                 </Badge>
                 <div className="flex items-center gap-3">
                   <div className="bg-white dark:bg-gray-800 p-2 rounded-lg">
