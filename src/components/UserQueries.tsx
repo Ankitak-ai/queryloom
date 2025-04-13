@@ -2,7 +2,8 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { History } from 'lucide-react';
+import { History, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface UserQueriesProps {
   onSelectQuery: (query: string) => void;
@@ -42,6 +43,13 @@ const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerat
               <span className="font-medium text-green-600">Unlimited queries enabled</span>
             </p>
           </div>
+
+          <Alert variant="info" className="bg-blue-50 dark:bg-blue-950 mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              If you experience issues with AI-generated visualization suggestions, the application will fall back to rule-based suggestions. You can toggle between modes using the button at the top.
+            </AlertDescription>
+          </Alert>
         </div>
       </CardContent>
     </Card>

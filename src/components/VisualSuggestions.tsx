@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, BarChart2, LineChart, PieChart, Map } from 'lucide-react';
+import { BarChart, BarChart2, LineChart, PieChart, Map, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface VisualSuggestionsProps {
@@ -51,6 +51,11 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
     }
   };
 
+  // Helper to check if mapped fields has actual content
+  const hasMappedFields = (mappedFields: Record<string, string | string[]>) => {
+    return Object.keys(mappedFields).length > 0;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -82,25 +87,32 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
                   {suggestion.description}
                 </p>
                 
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="fields">
-                    <AccordionTrigger className="text-sm py-2">
-                      Mapped Fields
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="text-sm space-y-1">
-                        {Object.entries(suggestion.mapped_fields).map(([key, value], i) => (
-                          <div key={i} className="grid grid-cols-3 gap-2">
-                            <span className="font-medium">{key}:</span>
-                            <span className="col-span-2">
-                              {Array.isArray(value) ? value.join(', ') : value}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                {hasMappedFields(suggestion.mapped_fields) ? (
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="fields">
+                      <AccordionTrigger className="text-sm py-2">
+                        Mapped Fields
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="text-sm space-y-1">
+                          {Object.entries(suggestion.mapped_fields).map(([key, value], i) => (
+                            <div key={i} className="grid grid-cols-3 gap-2">
+                              <span className="font-medium">{key}:</span>
+                              <span className="col-span-2">
+                                {Array.isArray(value) ? value.join(', ') : value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                ) : (
+                  <div className="text-sm flex items-center text-amber-600 gap-2 mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>Recommended fields would depend on your specific data structure</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
