@@ -44,7 +44,7 @@ const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerat
             </p>
           </div>
 
-          <Alert variant="info" className="bg-blue-50 dark:bg-blue-950 mt-4">
+          <Alert variant="default" className="bg-blue-50 dark:bg-blue-950 mt-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               If you experience issues with AI-generated visualization suggestions, the application will fall back to rule-based suggestions. You can toggle between modes using the button at the top.
@@ -57,3 +57,4 @@ const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerat
 };
 
 export default UserQueries;
+
