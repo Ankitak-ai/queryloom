@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AppHeader from '@/components/AppHeader';
 import FileUpload from '@/components/FileUpload';
@@ -18,6 +17,8 @@ import DatasetPreview from '@/components/DatasetPreview';
 import { Helmet } from 'react-helmet-async';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const PowerBiSuggestions = () => {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
@@ -25,6 +26,9 @@ const PowerBiSuggestions = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const { user, queryUsage, incrementQueryUsage, getQueryLimit } = useAuth();
+  const queryLimit = getQueryLimit();
+  const remainingQueries = queryLimit - queryUsage.count;
+  const resetTime = new Date(queryUsage.resetTime);
 
   // Track page visit
   React.useEffect(() => {
@@ -187,6 +191,50 @@ const PowerBiSuggestions = () => {
         </div>
         
         <div className="grid gap-8">
+          {/* Query Limit Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-purple-600" /> 
+                <span>Query Usage</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium mb-1">Queries made this session:</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                    <div 
+                      className="bg-purple-600 h-2.5 rounded-full" 
+                      style={{ width: `${Math.min((queryUsage.count / queryLimit) * 100, 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div className="grid gap-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">{queryUsage.count}</span> queries made
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">{remainingQueries >= 0 ? remainingQueries : 0}</span> queries remaining this hour
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Limit resets at: <span className="font-medium">{resetTime.toLocaleTimeString()}</span>
+                  </p>
+                </div>
+
+                <Alert variant="default" className="bg-blue-50 dark:bg-blue-950 mt-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {user ? 
+                      `As a logged-in user, you can make ${queryLimit} PowerBI visualization suggestions per hour.` : 
+                      `Guest users can make ${queryLimit} PowerBI visualization suggestions per hour. Sign in for more features.`}
+                  </AlertDescription>
+                </Alert>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
