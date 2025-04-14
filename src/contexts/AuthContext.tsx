@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,19 +45,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       resetTime: Date.now() + RESET_PERIOD
     };
   });
-
-  // Reset query usage when a user logs in
-  useEffect(() => {
-    // This will reset the query usage whenever the user state changes (login/logout)
-    if (user) {
-      // Reset query usage for new login
-      setQueryUsage({
-        count: 0,
-        resetTime: Date.now() + RESET_PERIOD
-      });
-      console.log("User logged in, query usage reset to 0");
-    }
-  }, [user]);
 
   useEffect(() => {
     if (user) {
