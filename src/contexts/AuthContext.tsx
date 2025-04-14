@@ -8,12 +8,6 @@ interface QueryUsage {
   resetTime: number; // Timestamp when the count resets
 }
 
-interface PageQueryLimits {
-  home: number;
-  powerbi: number;
-  reviews: number;
-}
-
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -25,23 +19,12 @@ interface AuthContextType {
   signInWithGithub: () => Promise<void>;
   signOut: () => Promise<void>;
   queryUsage: QueryUsage;
-  pageQueryLimits: PageQueryLimits;
-  getQueryLimit: (page: keyof PageQueryLimits) => number;
-  incrementQueryUsage: (page: keyof PageQueryLimits) => boolean;
+  incrementQueryUsage: () => boolean; // Returns false if limit reached
+  getQueryLimit: () => number;
 }
 
-const QUERY_LIMITS_GUEST: PageQueryLimits = {
-  home: 2,
-  powerbi: 1,
-  reviews: 1
-};
-
-const QUERY_LIMITS_USER: PageQueryLimits = {
-  home: 10,
-  powerbi: 1,
-  reviews: 5
-};
-
+const QUERY_LIMIT_GUEST = 99999;
+const QUERY_LIMIT_USER = 99999;
 const RESET_PERIOD = 60 * 60 * 1000; // 1 hour in milliseconds
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -135,18 +118,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const getQueryLimit = (page: keyof PageQueryLimits) => {
-    return user ? QUERY_LIMITS_USER[page] : QUERY_LIMITS_GUEST[page];
+  const getQueryLimit = () => {
+    return user ? QUERY_LIMIT_USER : QUERY_LIMIT_GUEST;
   };
 
-  const incrementQueryUsage = (page: keyof PageQueryLimits): boolean => {
-    const limit = getQueryLimit(page);
-    
-    if (queryUsage.count >= limit) {
-      toast.error(`You've reached your limit of ${limit} queries per hour for this page.`);
-      return false;
-    }
-
+  const incrementQueryUsage = () => {
     setQueryUsage(prev => ({
       ...prev,
       count: prev.count + 1
@@ -205,9 +181,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signInWithGithub,
         signOut, 
         queryUsage, 
-        pageQueryLimits: user ? QUERY_LIMITS_USER : QUERY_LIMITS_GUEST,
-        getQueryLimit, 
-        incrementQueryUsage 
+        incrementQueryUsage, 
+        getQueryLimit 
       }}
     >
       {children}
