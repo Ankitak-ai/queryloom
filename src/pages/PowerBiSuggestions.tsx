@@ -23,7 +23,6 @@ const PowerBiSuggestions = () => {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
   const [visualSuggestions, setVisualSuggestions] = useState<VisualSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isUsingAI, setIsUsingAI] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
   const { user, queryUsage, incrementQueryUsage, getQueryLimit } = useAuth();
 
@@ -113,28 +112,14 @@ const PowerBiSuggestions = () => {
     try {
       let allSuggestions: VisualSuggestion[] = [];
       
-      if (isUsingAI) {
-        // Use AI to generate suggestions
-        try {
-          allSuggestions = await generateAISuggestions();
-        } catch (error: any) {
-          console.error('Error generating AI suggestions:', error);
-          toast.error(`AI suggestion failed: ${error.message}`);
-          
-          // Fallback to rule-based logic if AI fails
-          if (isUsingAI) {
-            toast.info('Falling back to basic suggestion logic');
-            setIsUsingAI(false);
-            
-            // Generate rule-based suggestions
-            datasets.forEach(dataset => {
-              const suggestions = generateVisualSuggestions(dataset);
-              allSuggestions.push(...suggestions);
-            });
-          }
-        }
-      } else {
-        // Use rule-based logic to generate suggestions
+      // Use AI to generate suggestions
+      try {
+        allSuggestions = await generateAISuggestions();
+      } catch (error: any) {
+        console.error('Error generating AI suggestions:', error);
+        toast.error(`AI suggestion failed: ${error.message}`);
+        
+        // Fallback to rule-based logic
         datasets.forEach(dataset => {
           const suggestions = generateVisualSuggestions(dataset);
           allSuggestions.push(...suggestions);
@@ -162,13 +147,6 @@ const PowerBiSuggestions = () => {
     toast.success(`Removed dataset: ${filename}`);
   };
 
-  const toggleAIMode = () => {
-    setIsUsingAI(!isUsingAI);
-    toast.info(isUsingAI 
-      ? 'Switched to rule-based visualization suggestions' 
-      : 'Switched to AI-powered visualization suggestions');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
       <Helmet>
@@ -188,7 +166,7 @@ const PowerBiSuggestions = () => {
             </h1>
           </div>
           <p className="text-gray-600 dark:text-gray-300 mt-2 max-w-2xl mx-auto">
-            Upload your CSV datasets and get {isUsingAI ? 'AI-generated' : ''} Power BI visualization suggestions based on your data.
+            Upload your CSV datasets and get AI-generated Power BI visualization suggestions based on your data.
           </p>
           
           <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row">
@@ -205,15 +183,6 @@ const PowerBiSuggestions = () => {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-xs"
-              onClick={toggleAIMode}
-            >
-              {isUsingAI ? 'Using AI Suggestions' : 'Using Basic Suggestions'}
-            </Button>
           </div>
         </div>
         
@@ -270,7 +239,7 @@ const PowerBiSuggestions = () => {
                 ) : (
                   <>
                     <BarChart className="mr-2 h-4 w-4" />
-                    Generate {isUsingAI ? 'AI' : ''} Visualization Suggestions
+                    Generate Visualization Suggestions
                   </>
                 )}
               </Button>
