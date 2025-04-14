@@ -158,7 +158,7 @@ const PowerBiSuggestions = () => {
       
       <AppHeader />
       
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-16 right-4 z-40">
         <div className="bg-purple-50 dark:bg-purple-900 border border-purple-200 dark:border-purple-700 rounded-lg shadow-sm p-2 text-xs">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-purple-600 dark:text-purple-300" />
