@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AppHeader from '@/components/AppHeader';
 import FileUpload from '@/components/FileUpload';
@@ -19,6 +18,10 @@ import { Helmet } from 'react-helmet-async';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
+// PowerBI-specific query limits
+const POWERBI_QUERY_LIMIT_GUEST = 1;
+const POWERBI_QUERY_LIMIT_USER = 1;
+
 const PowerBiSuggestions = () => {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
   const [visualSuggestions, setVisualSuggestions] = useState<VisualSuggestion[]>([]);
@@ -30,6 +33,29 @@ const PowerBiSuggestions = () => {
   React.useEffect(() => {
     trackPageVisit('/powerbi');
   }, []);
+
+  // Get PowerBI-specific query limit
+  const getPowerBIQueryLimit = () => {
+    return user ? POWERBI_QUERY_LIMIT_USER : POWERBI_QUERY_LIMIT_GUEST;
+  };
+
+  // Current usage count for PowerBI
+  const [powerBIQueryUsage, setPowerBIQueryUsage] = useState<number>(0);
+
+  // Function to increment PowerBI-specific query usage
+  const incrementPowerBIQueryUsage = (): boolean => {
+    if (powerBIQueryUsage >= getPowerBIQueryLimit()) {
+      if (user) {
+        toast.error(`You've reached your limit of ${getPowerBIQueryLimit()} PowerBI queries per hour. Please try again later.`);
+      } else {
+        toast.error(`You've reached the guest limit of ${getPowerBIQueryLimit()} PowerBI queries per hour. Sign in for the same limits.`);
+      }
+      return false;
+    }
+    
+    setPowerBIQueryUsage(prev => prev + 1);
+    return true;
+  };
 
   const handleFilesUploaded = async (files: File[]) => {
     const newDatasets: DatasetFile[] = [];
@@ -58,14 +84,12 @@ const PowerBiSuggestions = () => {
   };
 
   const generateAISuggestions = async () => {
-    if (!incrementQueryUsage()) {
-      if (user) {
-        toast.error(`You've reached your limit of ${getQueryLimit()} queries per hour. Please try again later.`);
-      } else {
-        toast.error(`You've reached the guest limit of ${getQueryLimit()} queries per hour. Sign in for higher limits.`);
-      }
+    if (!incrementPowerBIQueryUsage()) {
       return [];
     }
+
+    // Also increment the global query usage counter
+    incrementQueryUsage();
 
     try {
       const request: VisualAIRequest = {

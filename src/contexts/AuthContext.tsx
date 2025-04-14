@@ -23,8 +23,8 @@ interface AuthContextType {
   getQueryLimit: () => number;
 }
 
-const QUERY_LIMIT_GUEST = 99999;
-const QUERY_LIMIT_USER = 99999;
+const QUERY_LIMIT_GUEST = 2;
+const QUERY_LIMIT_USER = 10;
 const RESET_PERIOD = 60 * 60 * 1000; // 1 hour in milliseconds
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
