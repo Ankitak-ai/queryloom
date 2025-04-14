@@ -4,6 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell
+} from '@/components/ui/table';
 
 interface DatasetFile {
   file: File;
@@ -60,41 +69,43 @@ const DatasetPreview: React.FC<DatasetPreviewProps> = ({ datasets, onRemoveDatas
           
           {datasets.map((dataset) => (
             <TabsContent key={dataset.file.name} value={dataset.file.name} className="w-full">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-200 text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      {dataset.headers.map((header, index) => (
-                        <th 
-                          key={`${header}-${index}`} 
-                          className="p-2 border border-gray-200 font-medium text-left"
-                        >
-                          <div className="flex flex-col">
-                            <span>{header}</span>
-                            <span className="text-xs text-gray-500">
-                              {dataset.dataTypes[header] || 'TEXT'}
-                            </span>
-                          </div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dataset.rows.map((row, rowIndex) => (
-                      <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        {row.map((cell, cellIndex) => (
-                          <td 
-                            key={`${rowIndex}-${cellIndex}`}
-                            className="p-2 border border-gray-200"
+              <ScrollArea className="w-full rounded-md border h-[360px]">
+                <div className="w-full h-full">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {dataset.headers.map((header, index) => (
+                          <TableHead 
+                            key={`${header}-${index}`}
+                            className="whitespace-nowrap"
                           >
-                            {cell}
-                          </td>
+                            <div className="flex flex-col">
+                              <span>{header}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {dataset.dataTypes[header] || 'TEXT'}
+                              </span>
+                            </div>
+                          </TableHead>
                         ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {dataset.rows.map((row, rowIndex) => (
+                        <TableRow key={rowIndex}>
+                          {row.map((cell, cellIndex) => (
+                            <TableCell 
+                              key={`${rowIndex}-${cellIndex}`}
+                              className="whitespace-nowrap"
+                            >
+                              {cell}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </ScrollArea>
               <div className="mt-4 text-xs text-gray-500">
                 <p>Showing first 5 rows of {dataset.file.name}</p>
               </div>
