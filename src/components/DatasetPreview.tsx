@@ -32,11 +32,11 @@ const DatasetPreview: React.FC<DatasetPreviewProps> = ({ datasets, onRemoveDatas
   }
 
   return (
-    <Card className="w-full max-w-full">
+    <Card className="w-full max-w-full overflow-hidden">
       <CardHeader>
         <CardTitle>Dataset Preview</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="overflow-hidden">
         <Tabs defaultValue={datasets[0]?.file.name} className="w-full">
           <TabsList className="mb-4 w-full flex overflow-x-auto">
             {datasets.map((dataset) => (
@@ -78,7 +78,7 @@ const DatasetPreview: React.FC<DatasetPreviewProps> = ({ datasets, onRemoveDatas
                           {dataset.headers.map((header, index) => (
                             <TableHead 
                               key={`${header}-${index}`}
-                              className="whitespace-nowrap"
+                              className="whitespace-nowrap px-3"
                             >
                               <div className="flex flex-col">
                                 <span>{header}</span>
@@ -96,7 +96,7 @@ const DatasetPreview: React.FC<DatasetPreviewProps> = ({ datasets, onRemoveDatas
                             {row.map((cell, cellIndex) => (
                               <TableCell 
                                 key={`${rowIndex}-${cellIndex}`}
-                                className="whitespace-nowrap"
+                                className="whitespace-nowrap px-3"
                               >
                                 {cell}
                               </TableCell>

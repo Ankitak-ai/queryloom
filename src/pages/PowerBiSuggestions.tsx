@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AppHeader from '@/components/AppHeader';
 import FileUpload from '@/components/FileUpload';
@@ -7,14 +6,6 @@ import { toast } from '@/lib/toast';
 import { trackPageVisit } from '@/utils/trackPageVisit';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import VisualSuggestions from '@/components/VisualSuggestions';
 import { Button } from '@/components/ui/button';
 import { Info, Database, BarChart, Clock } from 'lucide-react';
@@ -22,6 +13,7 @@ import { DatasetFile, VisualSuggestion, VisualAIRequest } from '@/types/powerbi'
 import { generateVisualSuggestions } from '@/utils/visualSuggestions';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import DatasetPreview from '@/components/DatasetPreview';
 
 const PowerBiSuggestions = () => {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
@@ -201,7 +193,7 @@ const PowerBiSuggestions = () => {
         </div>
         
         <div className="grid gap-8">
-          <Card>
+          <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Database className="h-5 w-5 text-purple-600" /> 
@@ -217,7 +209,7 @@ const PowerBiSuggestions = () => {
           </Card>
           
           {apiError && (
-            <Card className="border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800">
+            <Card className="border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 overflow-hidden">
               <CardHeader>
                 <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
                   <Info className="h-5 w-5" />
@@ -235,95 +227,29 @@ const PowerBiSuggestions = () => {
           )}
           
           {datasets.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Info className="h-5 w-5 text-purple-600" />
-                  <span>Dataset Preview</span>
-                </CardTitle>
-                <CardDescription>
-                  Review your dataset structure before generating suggestions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue={datasets[0].file.name}>
-                  <TabsList className="mb-4 flex-wrap">
-                    {datasets.map((dataset) => (
-                      <TabsTrigger
-                        key={dataset.file.name}
-                        value={dataset.file.name}
-                        className="flex items-center gap-1"
-                      >
-                        <span>{dataset.file.name}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveDataset(dataset.file.name);
-                          }}
-                          className="h-5 w-5 p-0 ml-2 text-gray-500 hover:text-red-500"
-                        >
-                          ×
-                        </Button>
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                  
-                  {datasets.map((dataset) => (
-                    <TabsContent key={dataset.file.name} value={dataset.file.name}>
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              {dataset.headers.map((header, index) => (
-                                <TableHead key={index} className="whitespace-nowrap">
-                                  <div className="font-medium">{header}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {dataset.dataTypes[header]}
-                                  </div>
-                                </TableHead>
-                              ))}
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {dataset.rows.map((row, rowIndex) => (
-                              <TableRow key={rowIndex}>
-                                {row.map((cell, cellIndex) => (
-                                  <TableCell key={cellIndex} className="whitespace-nowrap">
-                                    {cell || '-'}
-                                  </TableCell>
-                                ))}
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </TabsContent>
-                  ))}
-                </Tabs>
-                
-                <div className="mt-6 flex justify-center">
-                  <Button
-                    onClick={handleGenerateSuggestions}
-                    className="bg-purple-700 hover:bg-purple-800"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Clock className="mr-2 h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <BarChart className="mr-2 h-4 w-4" />
-                        Generate {isUsingAI ? 'AI' : ''} Visualization Suggestions
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <DatasetPreview datasets={datasets} onRemoveDataset={handleRemoveDataset} />
+          )}
+          
+          {datasets.length > 0 && (
+            <div className="flex justify-center mt-2 mb-6">
+              <Button
+                onClick={handleGenerateSuggestions}
+                className="bg-purple-700 hover:bg-purple-800"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Clock className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <BarChart className="mr-2 h-4 w-4" />
+                    Generate {isUsingAI ? 'AI' : ''} Visualization Suggestions
+                  </>
+                )}
+              </Button>
+            </div>
           )}
           
           {visualSuggestions.length > 0 && (
