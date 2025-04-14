@@ -19,6 +19,7 @@ const NotFound = () => {
         <title>Page Not Found | QueryLoom</title>
         <meta name="robots" content="noindex, nofollow" />
         <meta name="description" content="The page you are looking for does not exist. Return to QueryLoom home page." />
+        <link rel="canonical" href="https://queryloom.fun/404" />
         {/* Set HTTP status code for bots */}
         <script type="application/ld+json">
           {`

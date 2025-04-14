@@ -1,4 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { parseCSV, inferDataTypes } from '@/utils/csvParser';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -147,6 +149,21 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
+      <Helmet>
+        <title>QueryLoom - Weaving natural language into SQL queries seamlessly</title>
+        <meta name="description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
+        <link rel="canonical" href="https://queryloom.fun/" />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://queryloom.fun" />
+        <meta property="og:title" content="QueryLoom - Weaving natural language into SQL queries seamlessly" />
+        <meta property="og:description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
+        
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="QueryLoom - Weaving natural language into SQL queries seamlessly" />
+        <meta name="twitter:description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
+      </Helmet>
+      
       <AppHeader />
       
       <div className="container px-4 mx-auto max-w-6xl py-8">

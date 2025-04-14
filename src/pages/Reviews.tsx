@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import AppHeader from '@/components/AppHeader';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,6 +83,21 @@ const Reviews = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
+      <Helmet>
+        <title>User Reviews - QueryLoom</title>
+        <meta name="description" content="Read reviews from users of QueryLoom SQL Query Builder and share your own experience." />
+        <link rel="canonical" href="https://queryloom.fun/reviews" />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://queryloom.fun/reviews" />
+        <meta property="og:title" content="User Reviews - QueryLoom" />
+        <meta property="og:description" content="Read reviews from users of QueryLoom SQL Query Builder and share your own experience." />
+        
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="User Reviews - QueryLoom" />
+        <meta name="twitter:description" content="Read reviews from users of QueryLoom SQL Query Builder and share your own experience." />
+      </Helmet>
+      
       <AppHeader />
       
       <div className="container px-4 mx-auto max-w-6xl py-8">

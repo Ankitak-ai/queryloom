@@ -1,5 +1,6 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
+import AppHeader from '@/components/AppHeader';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,38 +26,26 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get('tab') === 'signup' ? 'signup' : 'signin';
 
-  // Check for hash params from auth providers (Google OAuth, etc.)
   useEffect(() => {
-    // If user is already authenticated, redirect to main page immediately
     if (user) {
       console.log("Auth page: User is already authenticated, redirecting to home");
       navigate('/');
       return;
     }
     
-    // Check if we have hash params from OAuth
     const hash = location.hash;
     if (hash && (hash.includes('access_token') || hash.includes('error'))) {
       console.log("Auth page: Detected auth provider hash in URL");
       setProcessingAuth(true);
 
-      // We don't need to manually handle the hash since Supabase client does it
-      // Just log any errors that might occur
       if (hash.includes('error')) {
         const params = new URLSearchParams(hash.substring(1));
         const error = params.get('error_description') || 'Authentication failed';
         toast.error(decodeURIComponent(error));
         setProcessingAuth(false);
       } else {
-        // Let the Supabase auth handler manage the token
-        // It will update the session via onAuthStateChange in AuthContext
         toast.success('Authentication successful! Redirecting...');
-        
-        // We'll let the AuthContext take care of session management
-        // and the useEffect that watches for user changes will redirect
-        // Just make sure we have a small delay to let the session get established
         setTimeout(() => {
-          // Check session directly to ensure it's established
           supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
               console.log("Auth page: Session confirmed after OAuth, redirecting");
@@ -100,7 +89,6 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        // Show registration complete message instead of redirecting
         setRegistrationComplete(true);
         toast.success('Registration successful! Please check your email for confirmation.');
       }
@@ -129,13 +117,10 @@ const Auth = () => {
     }
   };
 
-  // If user is already logged in, don't show the login form at all
-  // This is redundant with the redirect in useEffect, but adds an extra layer of protection
   if (user) {
     return null;
   }
 
-  // Show registration complete message
   if (registrationComplete) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
@@ -171,7 +156,6 @@ const Auth = () => {
     );
   }
 
-  // If we're processing the redirect, show loading indicator
   if (processingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
@@ -192,7 +176,16 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950 p-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
+      <Helmet>
+        <title>Sign In - QueryLoom</title>
+        <meta name="description" content="Sign in to your QueryLoom account to access advanced SQL query generation features." />
+        <link rel="canonical" href="https://queryloom.fun/auth" />
+        <meta name="robots" content="noindex, follow" />
+      </Helmet>
+      
+      <AppHeader />
+      
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">

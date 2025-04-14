@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,25 +32,7 @@ const AppRoutes = () => {
         <link rel="icon" href="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
         <meta name="theme-color" content="#6d28d9" />
         <meta name="google-site-verification" content="o9nQaP1kCVl6QKWRZAhlk13A7GU12Teb9jlzWrO3gvw" />
-        <title>QueryLoom - Weaving natural language into SQL queries seamlessly</title>
-        <meta name="description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
-        
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://queryloom.fun" />
-        <meta property="og:site_name" content="QueryLoom" />
-        <meta property="og:title" content="QueryLoom - Weaving natural language into SQL queries seamlessly" />
-        <meta property="og:description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
-        <meta property="og:image" content="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="en_US" />
-        
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@queryloom" />
-        <meta name="twitter:title" content="QueryLoom - Weaving natural language into SQL queries seamlessly" />
-        <meta name="twitter:description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
-        <meta name="twitter:image" content="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" />
-        <meta name="twitter:domain" content="queryloom.fun" />
+        {/* Base metadata that will be overridden by page-specific Helmet tags */}
       </Helmet>
       <TooltipProvider>
         <AuthProvider>
