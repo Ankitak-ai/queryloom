@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import AppHeader from '@/components/AppHeader';
 import FileUpload from '@/components/FileUpload';
@@ -72,7 +71,6 @@ const PowerBiSuggestions = () => {
   };
 
   const generateAISuggestions = async () => {
-    // Check if the user has reached their query limit before proceeding
     if (!incrementQueryUsage()) {
       if (user) {
         toast.error(`You've reached your limit of ${queryLimit} queries per hour. Please try again later.`);
@@ -121,7 +119,6 @@ const PowerBiSuggestions = () => {
       return;
     }
 
-    // Check if user has reached their query limit before proceeding
     if (queryUsage.count >= queryLimit) {
       if (user) {
         toast.error(`You've reached your limit of ${queryLimit} queries per hour. Please try again later.`);
@@ -143,7 +140,6 @@ const PowerBiSuggestions = () => {
         console.error('Error generating AI suggestions:', error);
         toast.error(`AI suggestion failed: ${error.message}`);
         
-        // If AI suggests fail, fallback to rule-based but still count as a query
         datasets.forEach(dataset => {
           const suggestions = generateVisualSuggestions(dataset);
           allSuggestions.push(...suggestions);
@@ -199,9 +195,8 @@ const PowerBiSuggestions = () => {
       </div>
       
       <div className="container px-4 mx-auto max-w-6xl py-8">
-        {/* Update Page Heading with new color */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-[#6E59A5] dark:text-[#8B5CF6] mb-2">Power BI Visualization Suggestions</h1>
+          <h1 className="text-3xl font-bold text-[#33C3F0] dark:text-[#F97316] mb-2">Power BI Visualization Suggestions</h1>
           <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             Upload your CSV datasets and get AI-generated Power BI visualization suggestions based on your data.
           </p>
@@ -285,4 +280,3 @@ const PowerBiSuggestions = () => {
 };
 
 export default PowerBiSuggestions;
-
