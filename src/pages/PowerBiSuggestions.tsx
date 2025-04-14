@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import AppHeader from '@/components/AppHeader';
 import FileUpload from '@/components/FileUpload';
@@ -14,6 +15,7 @@ import { generateVisualSuggestions } from '@/utils/visualSuggestions';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import DatasetPreview from '@/components/DatasetPreview';
+import { Helmet } from 'react-helmet-async';
 
 const PowerBiSuggestions = () => {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
@@ -167,6 +169,12 @@ const PowerBiSuggestions = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
+      <Helmet>
+        <title>Power BI Visualization Suggestions - QueryLoom</title>
+        <meta name="description" content="Upload your CSV datasets and get AI-powered Power BI visualization suggestions based on your data." />
+        <link rel="canonical" href="https://queryloom.fun/powerbi" />
+      </Helmet>
+      
       <AppHeader />
       
       <div className="container px-4 mx-auto max-w-6xl py-8">
