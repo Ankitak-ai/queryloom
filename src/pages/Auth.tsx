@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import AppHeader from '@/components/AppHeader';
@@ -177,7 +176,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950 flex items-center justify-center">
       <Helmet>
         <title>Sign In - QueryLoom</title>
         <meta name="description" content="Sign in to your QueryLoom account to access advanced SQL query generation features." />
@@ -187,7 +186,7 @@ const Auth = () => {
       
       <AppHeader />
       
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
             <Brain className="h-8 w-8 text-purple-600" />
