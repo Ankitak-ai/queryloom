@@ -32,11 +32,11 @@ const DatasetPreview: React.FC<DatasetPreviewProps> = ({ datasets, onRemoveDatas
   }
 
   return (
-    <Card className="w-full max-w-full overflow-hidden">
+    <Card className="w-full overflow-hidden">
       <CardHeader>
         <CardTitle>Dataset Preview</CardTitle>
       </CardHeader>
-      <CardContent className="overflow-hidden">
+      <CardContent>
         <Tabs defaultValue={datasets[0]?.file.name} className="w-full">
           <TabsList className="mb-4 w-full flex overflow-x-auto">
             {datasets.map((dataset) => (
@@ -69,45 +69,41 @@ const DatasetPreview: React.FC<DatasetPreviewProps> = ({ datasets, onRemoveDatas
           
           {datasets.map((dataset) => (
             <TabsContent key={dataset.file.name} value={dataset.file.name} className="w-full">
-              <div className="w-full overflow-hidden">
-                <ScrollArea className="w-full rounded-md border h-[360px]">
-                  <div className="inline-block min-w-full">
-                    <Table className="w-auto">
-                      <TableHeader>
-                        <TableRow>
-                          {dataset.headers.map((header, index) => (
-                            <TableHead 
-                              key={`${header}-${index}`}
-                              className="whitespace-nowrap px-3"
-                            >
-                              <div className="flex flex-col">
-                                <span>{header}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  {dataset.dataTypes[header] || 'TEXT'}
-                                </span>
-                              </div>
-                            </TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {dataset.rows.map((row, rowIndex) => (
-                          <TableRow key={rowIndex}>
-                            {row.map((cell, cellIndex) => (
-                              <TableCell 
-                                key={`${rowIndex}-${cellIndex}`}
-                                className="whitespace-nowrap px-3"
-                              >
-                                {cell}
-                              </TableCell>
-                            ))}
-                          </TableRow>
+              <ScrollArea orientation="both" className="w-full rounded-md border h-[360px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {dataset.headers.map((header, index) => (
+                        <TableHead 
+                          key={`${header}-${index}`}
+                          className="whitespace-nowrap px-3"
+                        >
+                          <div className="flex flex-col">
+                            <span>{header}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {dataset.dataTypes[header] || 'TEXT'}
+                            </span>
+                          </div>
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {dataset.rows.map((row, rowIndex) => (
+                      <TableRow key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <TableCell 
+                            key={`${rowIndex}-${cellIndex}`}
+                            className="whitespace-nowrap px-3"
+                          >
+                            {cell}
+                          </TableCell>
                         ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </ScrollArea>
-              </div>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
               <div className="mt-4 text-xs text-gray-500">
                 <p>Showing first 5 rows of {dataset.file.name}</p>
               </div>
