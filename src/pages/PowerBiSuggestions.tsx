@@ -30,7 +30,6 @@ const PowerBiSuggestions = () => {
   const remainingQueries = queryLimit - queryUsage.count;
   const resetTime = new Date(queryUsage.resetTime);
 
-  // Track page visit
   React.useEffect(() => {
     trackPageVisit('/powerbi');
   }, []);
@@ -116,14 +115,12 @@ const PowerBiSuggestions = () => {
     try {
       let allSuggestions: VisualSuggestion[] = [];
       
-      // Use AI to generate suggestions
       try {
         allSuggestions = await generateAISuggestions();
       } catch (error: any) {
         console.error('Error generating AI suggestions:', error);
         toast.error(`AI suggestion failed: ${error.message}`);
         
-        // Fallback to rule-based logic
         datasets.forEach(dataset => {
           const suggestions = generateVisualSuggestions(dataset);
           allSuggestions.push(...suggestions);
@@ -161,80 +158,24 @@ const PowerBiSuggestions = () => {
       
       <AppHeader />
       
-      <div className="container px-4 mx-auto max-w-6xl py-8">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <BarChart className="h-8 w-8 text-purple-700" />
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-blue-500">
-              Power BI Visualization Suggestions
-            </h1>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300 mt-2 max-w-2xl mx-auto">
-            Upload your CSV datasets and get AI-generated Power BI visualization suggestions based on your data.
-          </p>
-          
-          <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="outline" className="flex items-center gap-1 px-3 py-1 border-purple-200 bg-purple-50 dark:bg-purple-950 dark:border-purple-800">
-                    <Cpu size={14} className="text-purple-600" />
-                    <span className="text-purple-700 dark:text-purple-300">NVIDIA/llama-3.3-nemotron-super-49b-v1</span>
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-sm">Powered by NVIDIA LLaMA 3.3 Nemotron-Super for intelligent visualization recommendations</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+      <div className="fixed top-4 right-4 z-50">
+        <div className="bg-purple-50 dark:bg-purple-900 border border-purple-200 dark:border-purple-700 rounded-lg shadow-sm p-2 text-xs">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-purple-600 dark:text-purple-300" />
+            <div>
+              <p className="text-gray-600 dark:text-gray-300">
+                Queries: {queryUsage.count}/{queryLimit}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Reset: {resetTime.toLocaleTimeString()}
+              </p>
+            </div>
           </div>
         </div>
-        
+      </div>
+      
+      <div className="container px-4 mx-auto max-w-6xl py-8">
         <div className="grid gap-8">
-          {/* Query Limit Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-purple-600" /> 
-                <span>Query Usage</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium mb-1">Queries made this session:</p>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                    <div 
-                      className="bg-purple-600 h-2.5 rounded-full" 
-                      style={{ width: `${Math.min((queryUsage.count / queryLimit) * 100, 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className="grid gap-2">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">{queryUsage.count}</span> queries made
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">{remainingQueries >= 0 ? remainingQueries : 0}</span> queries remaining this hour
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Limit resets at: <span className="font-medium">{resetTime.toLocaleTimeString()}</span>
-                  </p>
-                </div>
-
-                <Alert variant="default" className="bg-blue-50 dark:bg-blue-950 mt-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {user ? 
-                      `As a logged-in user, you can make ${queryLimit} PowerBI visualization suggestions per hour.` : 
-                      `Guest users can make ${queryLimit} PowerBI visualization suggestions per hour. Sign in for more features.`}
-                  </AlertDescription>
-                </Alert>
-              </div>
-            </CardContent>
-          </Card>
-
           <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
