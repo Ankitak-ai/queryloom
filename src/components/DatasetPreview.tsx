@@ -70,39 +70,41 @@ const DatasetPreview: React.FC<DatasetPreviewProps> = ({ datasets, onRemoveDatas
           {datasets.map((dataset) => (
             <TabsContent key={dataset.file.name} value={dataset.file.name} className="w-full">
               <ScrollArea orientation="both" className="w-full rounded-md border h-[360px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {dataset.headers.map((header, index) => (
-                        <TableHead 
-                          key={`${header}-${index}`}
-                          className="whitespace-nowrap px-3"
-                        >
-                          <div className="flex flex-col">
-                            <span>{header}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {dataset.dataTypes[header] || 'TEXT'}
-                            </span>
-                          </div>
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {dataset.rows.map((row, rowIndex) => (
-                      <TableRow key={rowIndex}>
-                        {row.map((cell, cellIndex) => (
-                          <TableCell 
-                            key={`${rowIndex}-${cellIndex}`}
+                <div className="min-w-max">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {dataset.headers.map((header, index) => (
+                          <TableHead 
+                            key={`${header}-${index}`}
                             className="whitespace-nowrap px-3"
                           >
-                            {cell}
-                          </TableCell>
+                            <div className="flex flex-col">
+                              <span>{header}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {dataset.dataTypes[header] || 'TEXT'}
+                              </span>
+                            </div>
+                          </TableHead>
                         ))}
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {dataset.rows.map((row, rowIndex) => (
+                        <TableRow key={rowIndex}>
+                          {row.map((cell, cellIndex) => (
+                            <TableCell 
+                              key={`${rowIndex}-${cellIndex}`}
+                              className="whitespace-nowrap px-3"
+                            >
+                              {cell}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </ScrollArea>
               <div className="mt-4 text-xs text-gray-500">
                 <p>Showing first 5 rows of {dataset.file.name}</p>

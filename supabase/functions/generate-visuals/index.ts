@@ -31,26 +31,29 @@ serve(async (req) => {
       throw new Error("API key is not configured. Please set the api_key in your Supabase secrets.");
     }
 
-    // Format dataset schema for the prompt
-    const datasetDescriptions = datasets.map((dataset: any) => {
-      const schema = Object.entries(dataset.dataTypes)
-        .map(([col, type]) => `${col}: ${type}`)
-        .join('\n');
+    try {
+      console.log("Sending request to NVIDIA LLaMA API");
       
-      const sampleData = dataset.sampleRows.slice(0, 5);
-      
-      return `
+      // Format dataset schema for the prompt
+      const datasetDescriptions = datasets.map((dataset: any) => {
+        const schema = Object.entries(dataset.dataTypes)
+          .map(([col, type]) => `${col}: ${type}`)
+          .join('\n');
+        
+        const sampleData = dataset.sampleRows.slice(0, 5);
+        
+        return `
 Dataset: ${dataset.name}
 Schema:
 ${schema}
 
 Sample Data:
 ${JSON.stringify(sampleData, null, 2)}
-      `;
-    }).join('\n\n');
+        `;
+      }).join('\n\n');
 
-    // Create a prompt similar to the Python example
-    const prompt = `
+      // Create a prompt similar to the Python example
+      const prompt = `
 You are a data visualization expert. Based on the following dataset schema and samples, suggest 6 to 8 insightful charts that can be created in Power BI.
 
 ${datasetDescriptions}
@@ -74,76 +77,90 @@ Format each visualization suggestion as follows:
 DO NOT include the words "Unknown" or phrases like "Below are X chart suggestions" in your response.
 `;
 
-    console.log("Sending request to NVIDIA LLaMA API");
-    
-    // Call the NVIDIA LLaMA API
-    const response = await fetch(
-      "https://integrate.api.nvidia.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "nvidia/llama-3.3-nemotron-super-49b-v1",
-          messages: [
-            {
-              role: "system",
-              content: "You are a Power BI visualization expert who provides clear, well-structured suggestions with complete details. Begin your response directly with the first chart suggestion without any introductory text."
-            },
-            {
-              role: "user",
-              content: prompt
-            }
-          ],
-          temperature: 0.6,
-          top_p: 0.7,
-          max_tokens: 2048,
-          frequency_penalty: 0,
-          presence_penalty: 0
-        }),
+      // Call the NVIDIA LLaMA API
+      const response = await fetch(
+        "https://integrate.api.nvidia.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: "nvidia/llama-3.3-nemotron-super-49b-v1",
+            messages: [
+              {
+                role: "system",
+                content: "You are a Power BI visualization expert who provides clear, well-structured suggestions with complete details. Begin your response directly with the first chart suggestion without any introductory text."
+              },
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            temperature: 0.6,
+            top_p: 0.7,
+            max_tokens: 2048,
+            frequency_penalty: 0,
+            presence_penalty: 0
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('NVIDIA API error:', JSON.stringify(errorData));
+        // Fall back to rule-based suggestions instead of throwing an error
+        console.log("NVIDIA API failed, falling back to rule-based suggestions");
+        return new Response(
+          JSON.stringify({ suggestions: generateFallbackSuggestions(datasets) }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-    );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('NVIDIA API error:', JSON.stringify(errorData));
-      throw new Error(`NVIDIA API error: ${JSON.stringify(errorData)}`);
-    }
+      const data = await response.json();
+      console.log("Received response from NVIDIA API");
 
-    const data = await response.json();
-    console.log("Received response from NVIDIA API");
-
-    // Extract suggestions from the AI response
-    const aiResponse = data.choices[0].message.content;
-    console.log("AI response content received");
-    
-    // Parse the response into structured suggestions
-    let suggestions: VisualSuggestion[] = [];
-    
-    try {
-      // Clean the response text before parsing
-      const cleanedResponse = cleanResponseText(aiResponse);
+      // Extract suggestions from the AI response
+      const aiResponse = data.choices[0].message.content;
+      console.log("AI response content received");
       
-      // Attempt to extract chart suggestions from the cleaned response text
-      suggestions = parseChartSuggestions(cleanedResponse);
-      console.log(`Successfully parsed ${suggestions.length} chart suggestions`);
-    } catch (error) {
-      console.error("Error parsing chart suggestions:", error);
-      // Provide a fallback suggestion if parsing fails
-      suggestions = generateFallbackSuggestions(datasets);
-    }
+      // Parse the response into structured suggestions
+      let suggestions: VisualSuggestion[] = [];
+      
+      try {
+        // Clean the response text before parsing
+        const cleanedResponse = cleanResponseText(aiResponse);
+        
+        // Attempt to extract chart suggestions from the cleaned response text
+        suggestions = parseChartSuggestions(cleanedResponse);
+        console.log(`Successfully parsed ${suggestions.length} chart suggestions`);
+      } catch (error) {
+        console.error("Error parsing chart suggestions:", error);
+        // Provide a fallback suggestion if parsing fails
+        suggestions = generateFallbackSuggestions(datasets);
+      }
 
-    return new Response(
-      JSON.stringify({ suggestions }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      return new Response(
+        JSON.stringify({ suggestions }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (apiError) {
+      console.error('API error:', apiError);
+      // Instead of throwing, return fallback suggestions
+      return new Response(
+        JSON.stringify({ suggestions: generateFallbackSuggestions(datasets) }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
   } catch (error) {
     console.error('Error in generate-visuals function:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Unknown error occurred' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: error.message || 'Unknown error occurred',
+        suggestions: [] // Return empty suggestions array to prevent frontend errors
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
@@ -157,24 +174,68 @@ function generateFallbackSuggestions(datasets: any[]): VisualSuggestion[] {
   // Generate basic suggestions for each dataset
   datasets.forEach((dataset) => {
     const datasetName = dataset.name;
+    const headers = dataset.headers || [];
+    
+    // Categorize fields by data type
+    const categoricalFields: string[] = [];
+    const numericFields: string[] = [];
+    const dateFields: string[] = [];
+    
+    headers.forEach((header: string) => {
+      const type = (dataset.dataTypes[header] || 'TEXT').toUpperCase();
+      
+      if (type === 'TEXT' || type === 'VARCHAR') {
+        categoricalFields.push(header);
+      } else if (type === 'INTEGER' || type === 'DECIMAL' || type === 'NUMBER' || type === 'FLOAT') {
+        numericFields.push(header);
+      } else if (type === 'DATE' || type === 'TIMESTAMP' || type === 'DATETIME') {
+        dateFields.push(header);
+      }
+    });
     
     // Add a table visualization
     fallbackSuggestions.push({
       chart_name: `${datasetName} Table Overview`,
       description: "A comprehensive view of all data points for detailed analysis.",
       visual_type: "Table",
-      mapped_fields: { columns: "All available fields" }
+      mapped_fields: { columns: headers.join(', ') }
     });
     
-    // Add a basic bar chart if there are headers
-    if (dataset.headers && dataset.headers.length >= 2) {
+    // Add a basic bar chart if there are category and numeric fields
+    if (categoricalFields.length > 0 && numericFields.length > 0) {
       fallbackSuggestions.push({
-        chart_name: `${datasetName} Basic Analysis`,
-        description: "Basic comparison of values across categories.",
+        chart_name: `${numericFields[0]} by ${categoricalFields[0]}`,
+        description: `Compare ${numericFields[0]} values across different ${categoricalFields[0]} categories.`,
         visual_type: "Bar Chart",
         mapped_fields: { 
-          "x-axis": dataset.headers[0],
-          "y-axis": dataset.headers[1]
+          "y-axis": categoricalFields[0],
+          "x-axis": numericFields[0]
+        }
+      });
+    }
+    
+    // Add a line chart if there are date and numeric fields
+    if (dateFields.length > 0 && numericFields.length > 0) {
+      fallbackSuggestions.push({
+        chart_name: `${numericFields[0]} Trend Over Time`,
+        description: `Track how ${numericFields[0]} changes over time.`,
+        visual_type: "Line Chart",
+        mapped_fields: { 
+          "x-axis": dateFields[0],
+          "y-axis": numericFields[0]
+        }
+      });
+    }
+    
+    // Add a pie chart if there are category and numeric fields
+    if (categoricalFields.length > 0 && numericFields.length > 0) {
+      fallbackSuggestions.push({
+        chart_name: `${numericFields[0]} Distribution`,
+        description: `Show the distribution of ${numericFields[0]} across ${categoricalFields[0]} categories.`,
+        visual_type: "Pie Chart",
+        mapped_fields: { 
+          "legend": categoricalFields[0],
+          "values": numericFields[0]
         }
       });
     }
