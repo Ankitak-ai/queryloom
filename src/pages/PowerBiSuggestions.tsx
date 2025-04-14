@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import AppHeader from '@/components/AppHeader';
 import FileUpload from '@/components/FileUpload';
@@ -186,6 +187,19 @@ const PowerBiSuggestions = () => {
       </div>
       
       <div className="container px-4 mx-auto max-w-6xl py-8">
+        {/* Add Page Heading */}
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Power BI Visualization Suggestions</h1>
+          <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            Upload your CSV datasets and get AI-generated Power BI visualization suggestions based on your data.
+          </p>
+          <div className="mt-2">
+            <Badge variant="outline" className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 border-purple-300 dark:border-purple-700">
+              Powered by NVIDIA/llama-3.3-nemotron-super-49b-v1
+            </Badge>
+          </div>
+        </div>
+        
         <div className="grid gap-8">
           <Card className="overflow-hidden">
             <CardHeader>
