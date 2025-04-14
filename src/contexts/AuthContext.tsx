@@ -36,15 +36,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState<string>('');
   const [queryUsage, setQueryUsage] = useState<QueryUsage>(() => {
-    const savedUsage = localStorage.getItem('queryUsage');
-    if (savedUsage) {
-      return JSON.parse(savedUsage);
-    }
+    // Initialize with empty usage
     return {
       count: 0,
       resetTime: Date.now() + RESET_PERIOD
     };
   });
+
+  // Load query usage based on user ID when user state changes
+  useEffect(() => {
+    if (user) {
+      // For logged in users, use their user ID as the storage key
+      const storageKey = `queryUsage_${user.id}`;
+      const savedUsage = localStorage.getItem(storageKey);
+      
+      if (savedUsage) {
+        const parsedUsage = JSON.parse(savedUsage);
+        setQueryUsage(parsedUsage);
+      } else {
+        // If no saved usage for this user, initialize with fresh limits
+        setQueryUsage({
+          count: 0,
+          resetTime: Date.now() + RESET_PERIOD
+        });
+      }
+    } else {
+      // For guests, use the default 'queryUsage' key
+      const savedUsage = localStorage.getItem('queryUsage');
+      
+      if (savedUsage) {
+        const parsedUsage = JSON.parse(savedUsage);
+        setQueryUsage(parsedUsage);
+      } else {
+        setQueryUsage({
+          count: 0,
+          resetTime: Date.now() + RESET_PERIOD
+        });
+      }
+    }
+  }, [user]);
+
+  // Save query usage to localStorage whenever it changes
+  useEffect(() => {
+    if (user) {
+      // For logged in users, use their user ID as the storage key
+      const storageKey = `queryUsage_${user.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(queryUsage));
+    } else {
+      // For guests, use the default 'queryUsage' key
+      localStorage.setItem('queryUsage', JSON.stringify(queryUsage));
+    }
+  }, [queryUsage, user]);
 
   useEffect(() => {
     if (user) {
@@ -75,10 +117,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setDisplayName('');
     }
   }, [user]);
-
-  useEffect(() => {
-    localStorage.setItem('queryUsage', JSON.stringify(queryUsage));
-  }, [queryUsage]);
 
   useEffect(() => {
     const checkReset = () => {
