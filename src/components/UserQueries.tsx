@@ -13,7 +13,7 @@ interface UserQueriesProps {
 const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerated }) => {
   const { user, queryUsage, getQueryLimit } = useAuth();
   const queryLimit = getQueryLimit();
-  const remainingQueries = queryLimit - queryUsage.count;
+  const remainingQueries = Math.max(0, queryLimit - queryUsage.count);
   const resetTime = new Date(queryUsage.resetTime);
 
   return (
@@ -41,7 +41,7 @@ const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerat
               <span className="font-medium">{queryUsage.count}</span> queries made
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium">{remainingQueries >= 0 ? remainingQueries : 0}</span> queries remaining this hour
+              <span className="font-medium">{remainingQueries}</span> queries remaining this hour
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Limit resets at: <span className="font-medium">{resetTime.toLocaleTimeString()}</span>

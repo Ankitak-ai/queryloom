@@ -133,6 +133,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const incrementQueryUsage = () => {
+    // Check if limit is already reached
+    if (queryUsage.count >= getQueryLimit()) {
+      return false;
+    }
+    
     setQueryUsage(prev => ({
       ...prev,
       count: prev.count + 1

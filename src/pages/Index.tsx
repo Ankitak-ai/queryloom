@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { parseCSV, inferDataTypes } from '@/utils/csvParser';
@@ -103,7 +102,15 @@ const Index = () => {
       return;
     }
     
-    incrementQueryUsage();
+    // Check query limit before proceeding
+    if (!incrementQueryUsage()) {
+      if (user) {
+        toast.error(`You've reached your limit of ${getQueryLimit()} queries per hour. Please try again later.`);
+      } else {
+        toast.error(`You've reached the guest limit of ${getQueryLimit()} queries per hour. Sign in for higher limits.`);
+      }
+      return;
+    }
     
     setIsGenerating(true);
     setNaturalLanguageQuery(query);
