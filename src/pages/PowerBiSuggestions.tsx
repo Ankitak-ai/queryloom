@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import AppHeader from '@/components/AppHeader';
 import FileUpload from '@/components/FileUpload';
 import { parseCSV, inferDataTypes } from '@/utils/csvParser';
@@ -29,10 +29,20 @@ const PowerBiSuggestions = () => {
   const queryLimit = getQueryLimit();
   const remainingQueries = queryLimit - queryUsage.count;
   const resetTime = new Date(queryUsage.resetTime);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     trackPageVisit('/powerbi');
   }, []);
+
+  const scrollToSuggestions = () => {
+    if (suggestionsRef.current) {
+      suggestionsRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
 
   const handleFilesUploaded = async (files: File[]) => {
     const newDatasets: DatasetFile[] = [];
@@ -130,6 +140,7 @@ const PowerBiSuggestions = () => {
       setVisualSuggestions(allSuggestions);
       if (allSuggestions.length > 0) {
         toast.success(`Generated ${allSuggestions.length} visualization suggestions`);
+        setTimeout(scrollToSuggestions, 100);
       } else {
         toast.warning('No visualization suggestions could be generated');
       }
@@ -236,7 +247,9 @@ const PowerBiSuggestions = () => {
           )}
           
           {visualSuggestions.length > 0 && (
-            <VisualSuggestions suggestions={visualSuggestions} />
+            <div ref={suggestionsRef}>
+              <VisualSuggestions suggestions={visualSuggestions} />
+            </div>
           )}
         </div>
       </div>
