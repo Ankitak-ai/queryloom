@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,8 +24,9 @@ interface AuthContextType {
   getQueryLimit: () => number;
 }
 
-const QUERY_LIMIT_GUEST = 99999;
-const QUERY_LIMIT_USER = 99999;
+const QUERY_LIMIT_GUEST = 2;
+const QUERY_LIMIT_USER = 10;
+const QUERY_LIMIT_POWERBI = 1;
 const RESET_PERIOD = 60 * 60 * 1000; // 1 hour in milliseconds
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -119,7 +121,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const getQueryLimit = () => {
-    return user ? QUERY_LIMIT_USER : QUERY_LIMIT_GUEST;
+    // Check if we're on the PowerBI page
+    const isOnPowerBIPage = window.location.pathname.includes('/powerbi');
+    
+    if (isOnPowerBIPage) {
+      return QUERY_LIMIT_POWERBI; // 1 for both logged in and guest users
+    }
+    
+    // For the main page
+    return user ? QUERY_LIMIT_USER : QUERY_LIMIT_GUEST; // 10 for logged in, 2 for guests
   };
 
   const incrementQueryUsage = () => {

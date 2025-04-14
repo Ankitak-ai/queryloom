@@ -12,7 +12,8 @@ interface UserQueriesProps {
 
 const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerated }) => {
   const { user, queryUsage, getQueryLimit } = useAuth();
-  const remainingQueries = getQueryLimit() - queryUsage.count;
+  const queryLimit = getQueryLimit();
+  const remainingQueries = queryLimit - queryUsage.count;
   const resetTime = new Date(queryUsage.resetTime);
 
   return (
@@ -30,7 +31,7 @@ const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerat
             <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
               <div 
                 className="bg-purple-600 h-2.5 rounded-full" 
-                style={{ width: `${Math.min((queryUsage.count / 100) * 100, 100)}%` }}
+                style={{ width: `${Math.min((queryUsage.count / queryLimit) * 100, 100)}%` }}
               ></div>
             </div>
           </div>
@@ -40,14 +41,19 @@ const UserQueries: React.FC<UserQueriesProps> = ({ onSelectQuery, onQueryGenerat
               <span className="font-medium">{queryUsage.count}</span> queries made
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium text-green-600">Unlimited queries enabled</span>
+              <span className="font-medium">{remainingQueries >= 0 ? remainingQueries : 0}</span> queries remaining this hour
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Limit resets at: <span className="font-medium">{resetTime.toLocaleTimeString()}</span>
             </p>
           </div>
 
           <Alert variant="default" className="bg-blue-50 dark:bg-blue-950 mt-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              If you experience issues with AI-generated visualization suggestions, the application will fall back to rule-based suggestions. You can toggle between modes using the button at the top.
+              {user ? 
+                `As a logged-in user, you can make ${queryLimit} SQL queries per hour.` : 
+                `Guest users can make ${queryLimit} SQL queries per hour. Sign in for higher limits.`}
             </AlertDescription>
           </Alert>
         </div>
