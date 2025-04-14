@@ -199,9 +199,9 @@ const PowerBiSuggestions = () => {
       </div>
       
       <div className="container px-4 mx-auto max-w-6xl py-8">
-        {/* Add Page Heading */}
+        {/* Update Page Heading with new color */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Power BI Visualization Suggestions</h1>
+          <h1 className="text-3xl font-bold text-[#6E59A5] dark:text-[#8B5CF6] mb-2">Power BI Visualization Suggestions</h1>
           <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             Upload your CSV datasets and get AI-generated Power BI visualization suggestions based on your data.
           </p>
@@ -285,3 +285,4 @@ const PowerBiSuggestions = () => {
 };
 
 export default PowerBiSuggestions;
+
