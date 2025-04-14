@@ -72,11 +72,12 @@ const PowerBiSuggestions = () => {
   };
 
   const generateAISuggestions = async () => {
+    // Check if the user has reached their query limit before proceeding
     if (!incrementQueryUsage()) {
       if (user) {
-        toast.error(`You've reached your limit of ${getQueryLimit()} queries per hour. Please try again later.`);
+        toast.error(`You've reached your limit of ${queryLimit} queries per hour. Please try again later.`);
       } else {
-        toast.error(`You've reached the guest limit of ${getQueryLimit()} queries per hour. Sign in for higher limits.`);
+        toast.error(`You've reached the guest limit of ${queryLimit} queries per hour. Sign in for higher limits.`);
       }
       return [];
     }
@@ -120,6 +121,16 @@ const PowerBiSuggestions = () => {
       return;
     }
 
+    // Check if user has reached their query limit before proceeding
+    if (queryUsage.count >= queryLimit) {
+      if (user) {
+        toast.error(`You've reached your limit of ${queryLimit} queries per hour. Please try again later.`);
+      } else {
+        toast.error(`You've reached the guest limit of ${queryLimit} queries per hour. Sign in for higher limits.`);
+      }
+      return;
+    }
+
     setIsLoading(true);
     setApiError(null);
     
@@ -132,6 +143,7 @@ const PowerBiSuggestions = () => {
         console.error('Error generating AI suggestions:', error);
         toast.error(`AI suggestion failed: ${error.message}`);
         
+        // If AI suggests fail, fallback to rule-based but still count as a query
         datasets.forEach(dataset => {
           const suggestions = generateVisualSuggestions(dataset);
           allSuggestions.push(...suggestions);
@@ -243,7 +255,7 @@ const PowerBiSuggestions = () => {
               <Button
                 onClick={handleGenerateSuggestions}
                 className="bg-purple-700 hover:bg-purple-800"
-                disabled={isLoading}
+                disabled={isLoading || queryUsage.count >= queryLimit}
               >
                 {isLoading ? (
                   <>
@@ -254,6 +266,7 @@ const PowerBiSuggestions = () => {
                   <>
                     <BarChart className="mr-2 h-4 w-4" />
                     Generate Visualization Suggestions
+                    {queryUsage.count >= queryLimit && " (Limit Reached)"}
                   </>
                 )}
               </Button>

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -121,27 +120,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const getQueryLimit = () => {
-    // Check if we're on the PowerBI page
     const isOnPowerBIPage = window.location.pathname.includes('/powerbi');
     
     if (isOnPowerBIPage) {
       return QUERY_LIMIT_POWERBI; // 1 for both logged in and guest users
     }
     
-    // For the main page
     return user ? QUERY_LIMIT_USER : QUERY_LIMIT_GUEST; // 10 for logged in, 2 for guests
   };
 
   const incrementQueryUsage = () => {
-    // Check if limit is already reached
-    if (queryUsage.count >= getQueryLimit()) {
+    const currentLimit = getQueryLimit();
+    
+    if (queryUsage.count >= currentLimit) {
       return false;
     }
     
-    setQueryUsage(prev => ({
-      ...prev,
-      count: prev.count + 1
-    }));
+    if (Date.now() > queryUsage.resetTime) {
+      setQueryUsage({
+        count: 1,
+        resetTime: Date.now() + RESET_PERIOD
+      });
+    } else {
+      setQueryUsage(prev => ({
+        ...prev,
+        count: prev.count + 1
+      }));
+    }
+    
     return true;
   };
 
