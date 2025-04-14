@@ -186,7 +186,7 @@ const Auth = () => {
       
       <AppHeader />
       
-      <Card className="w-full max-w-md absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+      <Card className="w-full max-w-md absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 shadow-2xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
             <Brain className="h-8 w-8 text-purple-600" />
