@@ -9,13 +9,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import VisualSuggestions from '@/components/VisualSuggestions';
 import { Button } from '@/components/ui/button';
-import { Info, Database, BarChart, Clock } from 'lucide-react';
+import { Info, Database, BarChart, Clock, Cpu } from 'lucide-react';
 import { DatasetFile, VisualSuggestion, VisualAIRequest } from '@/types/powerbi';
 import { generateVisualSuggestions } from '@/utils/visualSuggestions';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import DatasetPreview from '@/components/DatasetPreview';
 import { Helmet } from 'react-helmet-async';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const PowerBiSuggestions = () => {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
@@ -188,7 +190,22 @@ const PowerBiSuggestions = () => {
           <p className="text-gray-600 dark:text-gray-300 mt-2 max-w-2xl mx-auto">
             Upload your CSV datasets and get {isUsingAI ? 'AI-generated' : ''} Power BI visualization suggestions based on your data.
           </p>
-          <div className="mt-2 flex justify-center">
+          
+          <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="flex items-center gap-1 px-3 py-1 border-purple-200 bg-purple-50 dark:bg-purple-950 dark:border-purple-800">
+                    <Cpu size={14} className="text-purple-600" />
+                    <span className="text-purple-700 dark:text-purple-300">NVIDIA/llama-3.3-nemotron-super-49b-v1</span>
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">Powered by NVIDIA LLaMA 3.3 Nemotron-Super for intelligent visualization recommendations</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
             <Button 
               variant="outline" 
               size="sm"
