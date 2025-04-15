@@ -55,63 +55,6 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
     }
   };
 
-  // Clean up the suggestions to handle formatting issues
-  const cleanSuggestions = (suggestions: VisualSuggestion[]): VisualSuggestion[] => {
-    return suggestions.map(suggestion => {
-      // Clean up the chart name - remove asterisks and other markdown formatting
-      const cleanChartName = suggestion.chart_name.replace(/\*\*/g, '').trim();
-      
-      // Clean up the description - remove markdown formatting
-      const cleanDescription = suggestion.description.replace(/\*\*/g, '').trim();
-      
-      // Clean up the visual type - remove any extra markdown
-      const cleanVisualType = suggestion.visual_type.replace(/\*\*/g, '').trim();
-      
-      // Clean up mapped fields
-      const cleanMappedFields: Record<string, string | string[]> = {};
-      
-      // Only process if mapped_fields exists
-      if (suggestion.mapped_fields) {
-        // Remove nested "mapped-fields:" keys
-        const fieldsToProcess = { ...suggestion.mapped_fields };
-        if ('mapped-fields' in fieldsToProcess) {
-          delete fieldsToProcess['mapped-fields'];
-        }
-        
-        // Process each field
-        Object.entries(fieldsToProcess).forEach(([key, value]) => {
-          // Skip if the key is 'mapped-fields' again
-          if (key === 'mapped-fields') return;
-          
-          // Clean up the key - remove colons, normalize dashes
-          const cleanKey = key.replace(/:/g, '').trim().toLowerCase();
-          
-          // Skip empty keys
-          if (!cleanKey) return;
-          
-          // Clean up the value - handle string or array
-          if (typeof value === 'string') {
-            // Remove asterisks, clean up whitespace
-            const cleanValue = value.replace(/\*\*/g, '').trim();
-            cleanMappedFields[cleanKey] = cleanValue;
-          } else if (Array.isArray(value)) {
-            // Clean up each array item
-            cleanMappedFields[cleanKey] = value.map(item => 
-              typeof item === 'string' ? item.replace(/\*\*/g, '').trim() : item
-            );
-          }
-        });
-      }
-      
-      return {
-        chart_name: cleanChartName,
-        description: cleanDescription,
-        visual_type: cleanVisualType,
-        mapped_fields: cleanMappedFields
-      };
-    });
-  };
-
   // Helper to check if mapped fields has actual content
   const hasMappedFields = (mappedFields: Record<string, string | string[]>) => {
     // Check if there are any fields
@@ -143,9 +86,6 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
     suggestion.chart_name !== 'Unknown' &&
     suggestion.visual_type
   );
-  
-  // Clean up the suggestions to handle formatting issues
-  const processedSuggestions = cleanSuggestions(validSuggestions);
 
   return (
     <Card>
@@ -157,7 +97,7 @@ const VisualSuggestions: React.FC<VisualSuggestionsProps> = ({ suggestions }) =>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {processedSuggestions.map((suggestion, index) => (
+          {validSuggestions.map((suggestion, index) => (
             <Card 
               key={index} 
               className={cn("overflow-hidden", getCardColor(suggestion.visual_type))}
