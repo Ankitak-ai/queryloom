@@ -1,3 +1,4 @@
+
 /**
  * Parse CSV string data into an array of objects
  * @param csvText CSV content as a string
@@ -58,12 +59,16 @@ export const parseExcel = async (file: File): Promise<Array<{
           throw new Error("FileReader did not return ArrayBuffer data");
         }
         
+        console.log("Successfully read Excel file as ArrayBuffer");
+        
         // Parse the Excel file
         const workbook = XLSX.read(new Uint8Array(data), { type: 'array' });
         
         if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
           throw new Error("Invalid Excel file or no sheets found");
         }
+        
+        console.log("Excel sheets found:", workbook.SheetNames);
         
         const datasets = workbook.SheetNames.map(sheetName => {
           const worksheet = workbook.Sheets[sheetName];

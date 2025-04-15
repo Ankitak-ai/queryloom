@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import AppHeader from '@/components/AppHeader';
 import FileUpload from '@/components/FileUpload';
@@ -65,8 +66,34 @@ const PowerBiSuggestions = () => {
       }
     }
     
-    setDatasets(newDatasets);
-    setVisualSuggestions([]);
+    setDatasets(prevDatasets => [...prevDatasets, ...newDatasets]);
+    setApiError(null);
+  };
+
+  const handleExcelSheetsUploaded = (file: File, sheets: Array<{ 
+    sheetName: string, 
+    headers: string[], 
+    rows: any[][],
+    dataTypes: Record<string, string>
+  }>) => {
+    // Create a dataset for each sheet
+    const newDatasets = sheets.map(sheet => {
+      // Create a virtual file for each sheet
+      const sheetFile = new File(
+        [file], 
+        `${file.name.replace(/\.[^/.]+$/, '')}_${sheet.sheetName}.xlsx`, 
+        { type: file.type }
+      );
+      
+      return {
+        file: sheetFile,
+        headers: sheet.headers,
+        rows: sheet.rows,
+        dataTypes: sheet.dataTypes
+      };
+    });
+    
+    setDatasets(prevDatasets => [...prevDatasets, ...newDatasets]);
     setApiError(null);
   };
 
@@ -217,11 +244,14 @@ const PowerBiSuggestions = () => {
                 <span>Upload Your Dataset</span>
               </CardTitle>
               <CardDescription>
-                Upload CSV files to analyze and get visualization suggestions
+                Upload CSV or Excel files to analyze and get visualization suggestions
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <FileUpload onFilesUploaded={handleFilesUploaded} />
+              <FileUpload 
+                onFilesUploaded={handleFilesUploaded} 
+                onExcelSheetsUploaded={handleExcelSheetsUploaded}
+              />
             </CardContent>
           </Card>
           

@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/toast';
@@ -77,13 +76,13 @@ const FileUpload = ({ onFilesUploaded, onExcelSheetsUploaded }: FileUploadProps)
       
       // Process Excel files if handler provided
       if (excelFiles.length > 0 && onExcelSheetsUploaded) {
+        toast.info(`Processing ${excelFiles.length} Excel file(s)...`);
         let successCount = 0;
         let failCount = 0;
         
         for (const excelFile of excelFiles) {
           try {
-            toast.info(`Processing Excel file: ${excelFile.name}...`);
-            
+            console.log(`Processing Excel file: ${excelFile.name}`);
             const sheets = await parseExcel(excelFile);
             
             if (sheets && sheets.length > 0) {
