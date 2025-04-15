@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/toast';
@@ -86,13 +87,27 @@ const FileUpload = ({ onFilesUploaded, onExcelSheetsUploaded }: FileUploadProps)
             const sheets = await parseExcel(excelFile);
             
             if (sheets && sheets.length > 0) {
-              onExcelSheetsUploaded(excelFile, sheets);
+              // Clean sheet names before passing them to the handler
+              const cleanedSheets = sheets.map(sheet => {
+                // Create a cleaned version of the sheet name
+                const cleanedName = sheet.sheetName
+                  .replace(/[^a-zA-Z0-9_\s-]/g, '') // Remove special characters
+                  .trim()
+                  .substring(0, 20); // Limit to 20 characters
+                
+                return {
+                  ...sheet,
+                  sheetName: cleanedName
+                };
+              });
+              
+              onExcelSheetsUploaded(excelFile, cleanedSheets);
               toast.success(`Excel file "${excelFile.name}" with ${sheets.length} sheet(s) processed successfully`);
               successCount++;
               
               // Log sheet info for debugging
               console.log(`Excel file ${excelFile.name} sheets:`, 
-                sheets.map(s => ({
+                cleanedSheets.map(s => ({
                   name: s.sheetName,
                   headerCount: s.headers.length,
                   rowCount: s.rows.length
