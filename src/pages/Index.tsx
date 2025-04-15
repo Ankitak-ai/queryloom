@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { parseCSV, inferDataTypes } from '@/utils/csvParser';
@@ -69,6 +70,48 @@ const Index = () => {
         toast.error(`Failed to process ${file.name}. Please check the file format.`);
       }
     }
+    
+    setDatasets(prev => {
+      const existing = [...prev];
+      
+      for (const newDataset of newDatasets) {
+        const index = existing.findIndex(d => d.file.name === newDataset.file.name);
+        if (index >= 0) {
+          existing[index] = newDataset;
+        } else {
+          existing.push(newDataset);
+        }
+      }
+      
+      return existing;
+    });
+  };
+  
+  const handleExcelSheetsUploaded = (file: File, sheets: Array<{ 
+    sheetName: string, 
+    headers: string[], 
+    rows: any[][],
+    dataTypes: Record<string, string>
+  }>) => {
+    // Create a dataset for each sheet
+    const newDatasets = sheets.map(sheet => {
+      // Clean up the sheet name for display
+      const cleanSheetName = sheet.sheetName;
+      
+      // Create a virtual file for each sheet with a cleaner name
+      const sheetFile = new File(
+        [file], 
+        `${cleanSheetName}.xlsx`, 
+        { type: file.type }
+      );
+      
+      return {
+        file: sheetFile,
+        headers: sheet.headers,
+        rows: sheet.rows,
+        dataTypes: sheet.dataTypes
+      };
+    });
     
     setDatasets(prev => {
       const existing = [...prev];
@@ -216,7 +259,10 @@ const Index = () => {
         </div>
         
         <div className="grid gap-8">
-          <FileUpload onFilesUploaded={handleFilesUploaded} />
+          <FileUpload 
+            onFilesUploaded={handleFilesUploaded} 
+            onExcelSheetsUploaded={handleExcelSheetsUploaded}
+          />
           
           <div className="grid md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
