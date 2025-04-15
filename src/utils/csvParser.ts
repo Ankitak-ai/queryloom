@@ -1,4 +1,3 @@
-
 /**
  * Parse CSV string data into an array of objects
  * @param csvText CSV content as a string
@@ -162,14 +161,15 @@ export const inferDataTypes = (headers: string[], rows: any[][]): Record<string,
       
       // Check if it's a number
       if (!isNaN(Number(value))) {
-        if (value.includes('.')) {
+        if (String(value).includes('.')) {
           dataTypes[header] = 'DECIMAL';
         } else {
           dataTypes[header] = 'INTEGER';
         }
       } 
-      // Check if it's a date
-      else if (/^\d{4}-\d{2}-\d{2}/.test(value) || /^\d{2}\/\d{2}\/\d{4}/.test(value)) {
+      // Check if it's a date - need to safely check includes on strings
+      else if (typeof value === 'string' && 
+              (value.match(/^\d{4}-\d{2}-\d{2}/) || value.match(/^\d{2}\/\d{2}\/\d{4}/))) {
         dataTypes[header] = 'DATE';
       }
       // Otherwise, it's text
