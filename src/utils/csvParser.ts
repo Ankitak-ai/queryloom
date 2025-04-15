@@ -1,4 +1,3 @@
-
 /**
  * Parse CSV string data into an array of objects
  * @param csvText CSV content as a string
@@ -51,74 +50,71 @@ export const parseExcel = async (file: File): Promise<Array<{
           throw new Error("Failed to read Excel file");
         }
         
-        let data: Uint8Array;
-        
-        // Handle different result types
+        // Always use ArrayBuffer for XLSX parsing
+        let data: ArrayBuffer;
         if (e.target.result instanceof ArrayBuffer) {
-          data = new Uint8Array(e.target.result);
-        } else if (typeof e.target.result === 'string') {
-          // Convert base64 string to array buffer if needed
-          const binary = atob(e.target.result.split(',')[1]);
-          const bytes = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-          }
-          data = bytes;
+          data = e.target.result;
         } else {
-          throw new Error("Unsupported file format");
+          throw new Error("FileReader did not return ArrayBuffer data");
         }
         
-        // Use try-catch block specifically for XLSX reading
-        try {
-          const workbook = XLSX.read(data, { type: 'array' });
+        // Parse the Excel file
+        const workbook = XLSX.read(new Uint8Array(data), { type: 'array' });
+        
+        if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+          throw new Error("Invalid Excel file or no sheets found");
+        }
+        
+        const datasets = workbook.SheetNames.map(sheetName => {
+          const worksheet = workbook.Sheets[sheetName];
           
-          const datasets = workbook.SheetNames.map(sheetName => {
-            const worksheet = workbook.Sheets[sheetName];
-            
-            // Use sheet_to_json with additional options for better parsing
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
-              header: 1,
-              defval: '', // Default value for empty cells
-              blankrows: false // Skip blank rows
-            });
-            
-            if (jsonData.length === 0) {
-              return {
-                sheetName,
-                headers: [],
-                rows: [],
-                dataTypes: {}
-              };
-            }
-            
-            const headers = (jsonData[0] as string[]).map(h => h.toString().trim() || `Column_${Math.random().toString(36).substring(2, 7)}`);
-            
-            // Process rows, ensuring consistent array length
-            const rows = jsonData.slice(1, 6).map(row => {
-              const typedRow = row as any[];
-              // Ensure row has same length as headers
-              const paddedRow = [...typedRow];
-              while (paddedRow.length < headers.length) {
-                paddedRow.push('');
-              }
-              return paddedRow;
-            });
-            
-            const dataTypes = inferDataTypes(headers, rows);
-            
-            return {
-              sheetName,
-              headers,
-              rows,
-              dataTypes
-            };
+          // Use sheet_to_json with header: 1 to get arrays instead of objects
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+            header: 1,
+            defval: '', // Default value for empty cells
+            blankrows: false // Skip blank rows
           });
           
-          resolve(datasets.filter(dataset => dataset.headers.length > 0));
-        } catch (xlsxError) {
-          console.error("XLSX parsing error:", xlsxError);
-          reject(new Error(`Failed to parse Excel file: ${xlsxError.message}`));
-        }
+          if (jsonData.length === 0) {
+            return {
+              sheetName,
+              headers: [],
+              rows: [],
+              dataTypes: {}
+            };
+          }
+          
+          // Extract headers (first row)
+          const headers = (jsonData[0] as string[]).map((h, index) => {
+            // Clean header or provide generic name for empty headers
+            return h && h.toString().trim() 
+              ? h.toString().trim() 
+              : `Column_${index + 1}`;
+          });
+          
+          // Process rows (subsequent rows), limiting to 5 for preview
+          const rows = jsonData.slice(1, 6).map(row => {
+            const typedRow = row as any[];
+            // Ensure row has same length as headers
+            const paddedRow = [...typedRow];
+            while (paddedRow.length < headers.length) {
+              paddedRow.push('');
+            }
+            return paddedRow;
+          });
+          
+          // Infer data types for the columns
+          const dataTypes = inferDataTypes(headers, rows);
+          
+          return {
+            sheetName,
+            headers,
+            rows,
+            dataTypes
+          };
+        });
+        
+        resolve(datasets.filter(dataset => dataset.headers.length > 0));
       } catch (error) {
         console.error("Error processing Excel file:", error);
         reject(error);
@@ -130,7 +126,7 @@ export const parseExcel = async (file: File): Promise<Array<{
       reject(error);
     };
     
-    // Try reading as ArrayBuffer first
+    // Use readAsArrayBuffer for Excel files - this is crucial for binary files
     reader.readAsArrayBuffer(file);
   });
 };

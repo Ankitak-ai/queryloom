@@ -65,6 +65,7 @@ const FileUpload = ({ onFilesUploaded, onExcelSheetsUploaded }: FileUploadProps)
       
       if (csvFiles.length === 0 && excelFiles.length === 0) {
         toast.error('Please upload CSV or Excel files only');
+        setIsProcessing(false);
         return;
       }
       
@@ -76,30 +77,50 @@ const FileUpload = ({ onFilesUploaded, onExcelSheetsUploaded }: FileUploadProps)
       
       // Process Excel files if handler provided
       if (excelFiles.length > 0 && onExcelSheetsUploaded) {
+        let successCount = 0;
+        let failCount = 0;
+        
         for (const excelFile of excelFiles) {
           try {
             toast.info(`Processing Excel file: ${excelFile.name}...`);
+            
             const sheets = await parseExcel(excelFile);
             
-            if (sheets.length > 0) {
+            if (sheets && sheets.length > 0) {
               onExcelSheetsUploaded(excelFile, sheets);
               toast.success(`Excel file "${excelFile.name}" with ${sheets.length} sheet(s) processed successfully`);
+              successCount++;
+              
+              // Log sheet info for debugging
+              console.log(`Excel file ${excelFile.name} sheets:`, 
+                sheets.map(s => ({
+                  name: s.sheetName,
+                  headerCount: s.headers.length,
+                  rowCount: s.rows.length
+                }))
+              );
             } else {
               toast.warning(`Excel file "${excelFile.name}" contains no valid sheets`);
+              failCount++;
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error(`Error processing Excel file ${excelFile.name}:`, error);
-            toast.error(`Failed to process Excel file "${excelFile.name}". Please check the file format.`);
+            toast.error(`Failed to process Excel file "${excelFile.name}": ${error.message}`);
+            failCount++;
           }
+        }
+        
+        if (successCount > 0 && failCount > 0) {
+          toast.info(`Processed ${successCount} Excel files successfully, ${failCount} failed`);
         }
       } else if (excelFiles.length > 0) {
         // If Excel files are provided but no handler, just pass them to the normal handler
         onFilesUploaded(excelFiles);
         toast.success(`${excelFiles.length} Excel file(s) uploaded successfully`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing files:", error);
-      toast.error("An error occurred while processing the files");
+      toast.error(`An error occurred while processing the files: ${error.message}`);
     } finally {
       setIsProcessing(false);
     }
