@@ -78,10 +78,16 @@ const PowerBiSuggestions = () => {
   }>) => {
     // Create a dataset for each sheet
     const newDatasets = sheets.map(sheet => {
-      // Create a virtual file for each sheet
+      // Clean up the sheet name, remove any special characters, and truncate if too long
+      const cleanSheetName = sheet.sheetName
+        .replace(/[^a-zA-Z0-9_\s-]/g, '') // Remove special characters
+        .trim()
+        .substring(0, 20); // Limit to 20 characters
+      
+      // Create a virtual file for each sheet with a cleaner name
       const sheetFile = new File(
         [file], 
-        `${file.name.replace(/\.[^/.]+$/, '')}_${sheet.sheetName}.xlsx`, 
+        `${cleanSheetName}.xlsx`, 
         { type: file.type }
       );
       
