@@ -3,12 +3,19 @@ import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/toast';
 import { Upload } from "lucide-react";
+import { parseExcel } from '@/utils/csvParser';
 
 interface FileUploadProps {
   onFilesUploaded: (files: File[]) => void;
+  onExcelSheetsUploaded?: (file: File, sheets: Array<{ 
+    sheetName: string, 
+    headers: string[], 
+    rows: any[][],
+    dataTypes: Record<string, string>
+  }>) => void;
 }
 
-const FileUpload = ({ onFilesUploaded }: FileUploadProps) => {
+const FileUpload = ({ onFilesUploaded, onExcelSheetsUploaded }: FileUploadProps) => {
   const [isDragging, setIsDragging] = useState(false);
   
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -28,37 +35,62 @@ const FileUpload = ({ onFilesUploaded }: FileUploadProps) => {
     e.stopPropagation();
   }, []);
   
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
     
     const droppedFiles = Array.from(e.dataTransfer.files);
-    const csvFiles = droppedFiles.filter(file => file.name.toLowerCase().endsWith('.csv'));
+    await processFiles(droppedFiles);
+  }, [onFilesUploaded, onExcelSheetsUploaded]);
+  
+  const handleFileInputChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const filesArray = Array.from(e.target.files);
+      await processFiles(filesArray);
+    }
+  }, [onFilesUploaded, onExcelSheetsUploaded]);
+  
+  const processFiles = async (files: File[]) => {
+    const csvFiles = files.filter(file => file.name.toLowerCase().endsWith('.csv'));
+    const excelFiles = files.filter(file => 
+      file.name.toLowerCase().endsWith('.xlsx') || 
+      file.name.toLowerCase().endsWith('.xls')
+    );
     
-    if (csvFiles.length === 0) {
-      toast.error('Please upload CSV files only');
+    if (csvFiles.length === 0 && excelFiles.length === 0) {
+      toast.error('Please upload CSV or Excel files only');
       return;
     }
     
-    onFilesUploaded(csvFiles);
-    toast.success(`${csvFiles.length} file(s) uploaded successfully`);
-  }, [onFilesUploaded]);
-  
-  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const filesArray = Array.from(e.target.files);
-      const csvFiles = filesArray.filter(file => file.name.toLowerCase().endsWith('.csv'));
-      
-      if (csvFiles.length === 0) {
-        toast.error('Please upload CSV files only');
-        return;
-      }
-      
+    // Handle CSV files normally
+    if (csvFiles.length > 0) {
       onFilesUploaded(csvFiles);
-      toast.success(`${csvFiles.length} file(s) uploaded successfully`);
+      toast.success(`${csvFiles.length} CSV file(s) uploaded successfully`);
     }
-  }, [onFilesUploaded]);
+    
+    // Process Excel files if handler provided
+    if (excelFiles.length > 0 && onExcelSheetsUploaded) {
+      for (const excelFile of excelFiles) {
+        try {
+          const sheets = await parseExcel(excelFile);
+          if (sheets.length > 0) {
+            onExcelSheetsUploaded(excelFile, sheets);
+            toast.success(`Excel file "${excelFile.name}" with ${sheets.length} sheet(s) processed successfully`);
+          } else {
+            toast.warning(`Excel file "${excelFile.name}" contains no valid sheets`);
+          }
+        } catch (error) {
+          console.error(`Error processing Excel file ${excelFile.name}:`, error);
+          toast.error(`Failed to process Excel file "${excelFile.name}". Please check the file format.`);
+        }
+      }
+    } else if (excelFiles.length > 0) {
+      // If Excel files are provided but no handler, just pass them to the normal handler
+      onFilesUploaded(excelFiles);
+      toast.success(`${excelFiles.length} Excel file(s) uploaded successfully`);
+    }
+  };
   
   const handleBoxClick = () => {
     document.getElementById('fileInput')?.click();
@@ -79,13 +111,13 @@ const FileUpload = ({ onFilesUploaded }: FileUploadProps) => {
         <div className="bg-blue-100 p-4 rounded-full">
           <Upload size={32} className="text-blue-500" />
         </div>
-        <h3 className="text-lg font-medium">Drag and drop CSV files here</h3>
+        <h3 className="text-lg font-medium">Drag and drop CSV or Excel files here</h3>
         <p className="text-sm text-gray-500">or</p>
         <input
           type="file"
           id="fileInput"
           multiple
-          accept=".csv"
+          accept=".csv,.xlsx,.xls"
           className="hidden"
           onChange={handleFileInputChange}
           onClick={(e) => e.stopPropagation()} // Prevent double-trigger of click events
@@ -99,7 +131,7 @@ const FileUpload = ({ onFilesUploaded }: FileUploadProps) => {
         >
           Browse Files
         </Button>
-        <p className="text-xs text-gray-400 mt-2">Upload multiple CSV files to analyze</p>
+        <p className="text-xs text-gray-400 mt-2">Upload CSV or Excel files to analyze</p>
       </div>
     </div>
   );

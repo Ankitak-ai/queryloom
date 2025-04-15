@@ -1,8 +1,11 @@
+
 /**
  * Parse CSV string data into an array of objects
  * @param csvText CSV content as a string
  * @returns Array of objects with column headers as keys
  */
+import * as XLSX from 'xlsx';
+
 export const parseCSV = (csvText: string): { headers: string[], rows: any[][] } => {
   try {
     // Split the CSV text into lines
@@ -26,6 +29,62 @@ export const parseCSV = (csvText: string): { headers: string[], rows: any[][] } 
     console.error("Error parsing CSV:", error);
     return { headers: [], rows: [] };
   }
+};
+
+/**
+ * Parse Excel file data into multiple datasets based on sheets
+ * @param file Excel file
+ * @returns Promise resolving to an array of sheet datasets
+ */
+export const parseExcel = async (file: File): Promise<Array<{ 
+  sheetName: string, 
+  headers: string[], 
+  rows: any[][], 
+  dataTypes: Record<string, string>
+}>> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        const datasets = workbook.SheetNames.map(sheetName => {
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          
+          if (jsonData.length === 0) {
+            return {
+              sheetName,
+              headers: [],
+              rows: [],
+              dataTypes: {}
+            };
+          }
+          
+          const headers = jsonData[0] as string[];
+          const rows = jsonData.slice(1, 6) as any[][]; // Only take first 5 rows for preview
+          const dataTypes = inferDataTypes(headers, rows);
+          
+          return {
+            sheetName,
+            headers,
+            rows,
+            dataTypes
+          };
+        });
+        
+        resolve(datasets);
+      } catch (error) {
+        console.error("Error parsing Excel file:", error);
+        reject(error);
+      }
+    };
+    
+    reader.onerror = (error) => reject(error);
+    reader.readAsArrayBuffer(file);
+  });
 };
 
 /**
