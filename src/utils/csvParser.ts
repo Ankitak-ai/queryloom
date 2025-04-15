@@ -47,42 +47,90 @@ export const parseExcel = async (file: File): Promise<Array<{
     
     reader.onload = (e) => {
       try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
+        if (!e.target?.result) {
+          throw new Error("Failed to read Excel file");
+        }
         
-        const datasets = workbook.SheetNames.map(sheetName => {
-          const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        let data: Uint8Array;
+        
+        // Handle different result types
+        if (e.target.result instanceof ArrayBuffer) {
+          data = new Uint8Array(e.target.result);
+        } else if (typeof e.target.result === 'string') {
+          // Convert base64 string to array buffer if needed
+          const binary = atob(e.target.result.split(',')[1]);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          data = bytes;
+        } else {
+          throw new Error("Unsupported file format");
+        }
+        
+        // Use try-catch block specifically for XLSX reading
+        try {
+          const workbook = XLSX.read(data, { type: 'array' });
           
-          if (jsonData.length === 0) {
+          const datasets = workbook.SheetNames.map(sheetName => {
+            const worksheet = workbook.Sheets[sheetName];
+            
+            // Use sheet_to_json with additional options for better parsing
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+              header: 1,
+              defval: '', // Default value for empty cells
+              blankrows: false // Skip blank rows
+            });
+            
+            if (jsonData.length === 0) {
+              return {
+                sheetName,
+                headers: [],
+                rows: [],
+                dataTypes: {}
+              };
+            }
+            
+            const headers = (jsonData[0] as string[]).map(h => h.toString().trim() || `Column_${Math.random().toString(36).substring(2, 7)}`);
+            
+            // Process rows, ensuring consistent array length
+            const rows = jsonData.slice(1, 6).map(row => {
+              const typedRow = row as any[];
+              // Ensure row has same length as headers
+              const paddedRow = [...typedRow];
+              while (paddedRow.length < headers.length) {
+                paddedRow.push('');
+              }
+              return paddedRow;
+            });
+            
+            const dataTypes = inferDataTypes(headers, rows);
+            
             return {
               sheetName,
-              headers: [],
-              rows: [],
-              dataTypes: {}
+              headers,
+              rows,
+              dataTypes
             };
-          }
+          });
           
-          const headers = jsonData[0] as string[];
-          const rows = jsonData.slice(1, 6) as any[][]; // Only take first 5 rows for preview
-          const dataTypes = inferDataTypes(headers, rows);
-          
-          return {
-            sheetName,
-            headers,
-            rows,
-            dataTypes
-          };
-        });
-        
-        resolve(datasets);
+          resolve(datasets.filter(dataset => dataset.headers.length > 0));
+        } catch (xlsxError) {
+          console.error("XLSX parsing error:", xlsxError);
+          reject(new Error(`Failed to parse Excel file: ${xlsxError.message}`));
+        }
       } catch (error) {
-        console.error("Error parsing Excel file:", error);
+        console.error("Error processing Excel file:", error);
         reject(error);
       }
     };
     
-    reader.onerror = (error) => reject(error);
+    reader.onerror = (error) => {
+      console.error("FileReader error:", error);
+      reject(error);
+    };
+    
+    // Try reading as ArrayBuffer first
     reader.readAsArrayBuffer(file);
   });
 };

@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/toast';
-import { Upload } from "lucide-react";
+import { Upload, FileSpreadsheet } from "lucide-react";
 import { parseExcel } from '@/utils/csvParser';
 
 interface FileUploadProps {
@@ -17,6 +17,7 @@ interface FileUploadProps {
 
 const FileUpload = ({ onFilesUploaded, onExcelSheetsUploaded }: FileUploadProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -52,43 +53,55 @@ const FileUpload = ({ onFilesUploaded, onExcelSheetsUploaded }: FileUploadProps)
   }, [onFilesUploaded, onExcelSheetsUploaded]);
   
   const processFiles = async (files: File[]) => {
-    const csvFiles = files.filter(file => file.name.toLowerCase().endsWith('.csv'));
-    const excelFiles = files.filter(file => 
-      file.name.toLowerCase().endsWith('.xlsx') || 
-      file.name.toLowerCase().endsWith('.xls')
-    );
+    if (isProcessing) return;
+    setIsProcessing(true);
     
-    if (csvFiles.length === 0 && excelFiles.length === 0) {
-      toast.error('Please upload CSV or Excel files only');
-      return;
-    }
-    
-    // Handle CSV files normally
-    if (csvFiles.length > 0) {
-      onFilesUploaded(csvFiles);
-      toast.success(`${csvFiles.length} CSV file(s) uploaded successfully`);
-    }
-    
-    // Process Excel files if handler provided
-    if (excelFiles.length > 0 && onExcelSheetsUploaded) {
-      for (const excelFile of excelFiles) {
-        try {
-          const sheets = await parseExcel(excelFile);
-          if (sheets.length > 0) {
-            onExcelSheetsUploaded(excelFile, sheets);
-            toast.success(`Excel file "${excelFile.name}" with ${sheets.length} sheet(s) processed successfully`);
-          } else {
-            toast.warning(`Excel file "${excelFile.name}" contains no valid sheets`);
-          }
-        } catch (error) {
-          console.error(`Error processing Excel file ${excelFile.name}:`, error);
-          toast.error(`Failed to process Excel file "${excelFile.name}". Please check the file format.`);
-        }
+    try {
+      const csvFiles = files.filter(file => file.name.toLowerCase().endsWith('.csv'));
+      const excelFiles = files.filter(file => 
+        file.name.toLowerCase().endsWith('.xlsx') || 
+        file.name.toLowerCase().endsWith('.xls')
+      );
+      
+      if (csvFiles.length === 0 && excelFiles.length === 0) {
+        toast.error('Please upload CSV or Excel files only');
+        return;
       }
-    } else if (excelFiles.length > 0) {
-      // If Excel files are provided but no handler, just pass them to the normal handler
-      onFilesUploaded(excelFiles);
-      toast.success(`${excelFiles.length} Excel file(s) uploaded successfully`);
+      
+      // Handle CSV files normally
+      if (csvFiles.length > 0) {
+        onFilesUploaded(csvFiles);
+        toast.success(`${csvFiles.length} CSV file(s) uploaded successfully`);
+      }
+      
+      // Process Excel files if handler provided
+      if (excelFiles.length > 0 && onExcelSheetsUploaded) {
+        for (const excelFile of excelFiles) {
+          try {
+            toast.info(`Processing Excel file: ${excelFile.name}...`);
+            const sheets = await parseExcel(excelFile);
+            
+            if (sheets.length > 0) {
+              onExcelSheetsUploaded(excelFile, sheets);
+              toast.success(`Excel file "${excelFile.name}" with ${sheets.length} sheet(s) processed successfully`);
+            } else {
+              toast.warning(`Excel file "${excelFile.name}" contains no valid sheets`);
+            }
+          } catch (error) {
+            console.error(`Error processing Excel file ${excelFile.name}:`, error);
+            toast.error(`Failed to process Excel file "${excelFile.name}". Please check the file format.`);
+          }
+        }
+      } else if (excelFiles.length > 0) {
+        // If Excel files are provided but no handler, just pass them to the normal handler
+        onFilesUploaded(excelFiles);
+        toast.success(`${excelFiles.length} Excel file(s) uploaded successfully`);
+      }
+    } catch (error) {
+      console.error("Error processing files:", error);
+      toast.error("An error occurred while processing the files");
+    } finally {
+      setIsProcessing(false);
     }
   };
   
@@ -112,6 +125,10 @@ const FileUpload = ({ onFilesUploaded, onExcelSheetsUploaded }: FileUploadProps)
           <Upload size={32} className="text-blue-500" />
         </div>
         <h3 className="text-lg font-medium">Drag and drop CSV or Excel files here</h3>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <FileSpreadsheet className="h-4 w-4" />
+          <span>Excel files will be processed sheet by sheet</span>
+        </div>
         <p className="text-sm text-gray-500">or</p>
         <input
           type="file"
@@ -128,8 +145,9 @@ const FileUpload = ({ onFilesUploaded, onExcelSheetsUploaded }: FileUploadProps)
             document.getElementById('fileInput')?.click();
           }}
           className="bg-blue-500 hover:bg-blue-600"
+          disabled={isProcessing}
         >
-          Browse Files
+          {isProcessing ? 'Processing...' : 'Browse Files'}
         </Button>
         <p className="text-xs text-gray-400 mt-2">Upload CSV or Excel files to analyze</p>
       </div>
