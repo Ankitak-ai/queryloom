@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LogIn, LogOut, UserPlus, MessageSquare, BarChart2 } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 const AppHeader: React.FC = () => {
   const { user, displayName, signOut, loading } = useAuth();
@@ -14,7 +14,6 @@ const AppHeader: React.FC = () => {
     await signOut();
   };
 
-  // Get user initials for avatar
   const getInitials = () => {
     if (!displayName) return 'U';
     
@@ -63,7 +62,8 @@ const AppHeader: React.FC = () => {
           </nav>
         </div>
         
-        <div className="flex items-center">
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
           {loading ? (
             <div className="h-9 flex items-center">
               <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-8 w-24 rounded"></div>
