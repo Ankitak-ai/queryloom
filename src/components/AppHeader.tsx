@@ -71,6 +71,7 @@ const AppHeader: React.FC = () => {
             </div>
           ) : user ? (
             <div className="flex items-center gap-3">
+              <SocialLinks compact />
               <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
                 <Avatar className="h-6 w-6 mr-2">
                   <AvatarFallback className="bg-purple-100 text-purple-600 text-xs">
@@ -91,6 +92,7 @@ const AppHeader: React.FC = () => {
             </div>
           ) : (
             <div className="flex items-center gap-4">
+              <SocialLinks compact />
               <div className="flex items-center gap-2">
                 <Button 
                   variant="outline" 
@@ -115,7 +117,6 @@ const AppHeader: React.FC = () => {
                   </Link>
                 </Button>
               </div>
-              <SocialLinks />
             </div>
           )}
         </div>
@@ -125,4 +126,3 @@ const AppHeader: React.FC = () => {
 };
 
 export default AppHeader;
-
