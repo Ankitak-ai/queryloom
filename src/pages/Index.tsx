@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate } from 'react-router-dom';
+import SocialLinks from "@/components/SocialLinks";
 
 interface DatasetFile {
   file: File;
@@ -28,7 +29,7 @@ interface DatasetFile {
 
 const QUERY_LIMIT_USER = 10;
 
-const Index = () => {
+export default function Index() {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
   const [generatedSql, setGeneratedSql] = useState<string>('');
   const [sqlExplanation, setSqlExplanation] = useState<string>('');
@@ -155,7 +156,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
+    <>
       <Helmet>
         <title>QueryLoom - Weaving natural language into SQL queries seamlessly</title>
         <meta name="description" content="Turn natural language into SQL instantly. Upload CSV datasets and generate accurate SQL queries with AI." />
@@ -254,8 +255,8 @@ const Index = () => {
           </div>
         </div>
       </div>
-    </div>
+      
+      <SocialLinks />
+    </>
   );
-};
-
-export default Index;
+}

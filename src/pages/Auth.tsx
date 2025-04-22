@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import AppHeader from '@/components/AppHeader';
@@ -14,6 +13,7 @@ import { Brain, Github, Info, LogIn } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
+import SocialLinks from "@/components/SocialLinks";
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -352,6 +352,7 @@ const Auth = () => {
           </Tabs>
         </Card>
       </div>
+      <SocialLinks />
     </div>
   );
 };

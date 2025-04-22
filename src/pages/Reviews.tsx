@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +10,7 @@ import { MessageSquare } from 'lucide-react';
 import { toast } from '@/lib/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ReviewItem from '@/components/ReviewItem';
+import SocialLinks from "@/components/SocialLinks";
 
 interface Review {
   id: string;
@@ -174,6 +174,7 @@ const Reviews = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <SocialLinks />
     </div>
   );
 };

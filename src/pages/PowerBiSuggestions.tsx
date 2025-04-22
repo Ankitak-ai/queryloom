@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import AppHeader from '@/components/AppHeader';
 import FileUpload from '@/components/FileUpload';
@@ -20,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import SocialLinks from "@/components/SocialLinks";
 
 const PowerBiSuggestions = () => {
   const [datasets, setDatasets] = useState<DatasetFile[]>([]);
@@ -202,118 +202,122 @@ const PowerBiSuggestions = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
-      <Helmet>
-        <title>Power BI Visualization Suggestions - QueryLoom</title>
-        <meta name="description" content="Upload your CSV datasets and get AI-powered Power BI visualization suggestions based on your data." />
-        <link rel="canonical" href="https://queryloom.fun/powerbi" />
-      </Helmet>
-      
-      <AppHeader />
-      
-      <div className="fixed top-16 right-4 z-40">
-        <div className="bg-purple-50 dark:bg-purple-900 border border-purple-200 dark:border-purple-700 rounded-lg shadow-sm p-2 text-xs">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-purple-600 dark:text-purple-300" />
-            <div>
-              <p className="text-gray-600 dark:text-gray-300">
-                Queries: {queryUsage.count}/{queryLimit}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Reset: {resetTime.toLocaleTimeString()}
-              </p>
+    <>
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 dark:from-gray-900 dark:to-purple-950">
+        <Helmet>
+          <title>Power BI Visualization Suggestions - QueryLoom</title>
+          <meta name="description" content="Upload your CSV datasets and get AI-powered Power BI visualization suggestions based on your data." />
+          <link rel="canonical" href="https://queryloom.fun/powerbi" />
+        </Helmet>
+        
+        <AppHeader />
+        
+        <div className="fixed top-16 right-4 z-40">
+          <div className="bg-purple-50 dark:bg-purple-900 border border-purple-200 dark:border-purple-700 rounded-lg shadow-sm p-2 text-xs">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-purple-600 dark:text-purple-300" />
+              <div>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Queries: {queryUsage.count}/{queryLimit}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Reset: {resetTime.toLocaleTimeString()}
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="container px-4 mx-auto max-w-6xl py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-blue-500 mb-2">
-            Power BI Visualization Suggestions
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Upload your CSV datasets and get AI-generated Power BI visualization suggestions based on your data.
-          </p>
-          <div className="mt-2">
-            <Badge variant="outline" className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 border-purple-300 dark:border-purple-700">
-              Powered by NVIDIA/llama-3.3-nemotron-super-49b-v1
-            </Badge>
           </div>
         </div>
         
-        <div className="grid gap-8">
-          <Card className="overflow-hidden">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5 text-purple-600" /> 
-                <span>Upload Your Dataset</span>
-              </CardTitle>
-              <CardDescription>
-                Upload CSV or Excel files to analyze and get visualization suggestions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FileUpload 
-                onFilesUploaded={handleFilesUploaded} 
-                onExcelSheetsUploaded={handleExcelSheetsUploaded}
-              />
-            </CardContent>
-          </Card>
+        <div className="container px-4 mx-auto max-w-6xl py-8">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-blue-500 mb-2">
+              Power BI Visualization Suggestions
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Upload your CSV datasets and get AI-generated Power BI visualization suggestions based on your data.
+            </p>
+            <div className="mt-2">
+              <Badge variant="outline" className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 border-purple-300 dark:border-purple-700">
+                Powered by NVIDIA/llama-3.3-nemotron-super-49b-v1
+              </Badge>
+            </div>
+          </div>
           
-          {apiError && (
-            <Card className="border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 overflow-hidden">
+          <div className="grid gap-8">
+            <Card className="overflow-hidden">
               <CardHeader>
-                <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
-                  <Info className="h-5 w-5" />
-                  <span>Error from AI Service</span>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5 text-purple-600" /> 
+                  <span>Upload Your Dataset</span>
                 </CardTitle>
+                <CardDescription>
+                  Upload CSV or Excel files to analyze and get visualization suggestions
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-red-600 dark:text-red-400">{apiError}</p>
-                <p className="mt-2 text-gray-600 dark:text-gray-400">
-                  The application has automatically switched to basic suggestions. 
-                  Please try again later or contact support if the issue persists.
-                </p>
+                <FileUpload 
+                  onFilesUploaded={handleFilesUploaded} 
+                  onExcelSheetsUploaded={handleExcelSheetsUploaded}
+                />
               </CardContent>
             </Card>
-          )}
-          
-          {datasets.length > 0 && (
-            <DatasetPreview datasets={datasets} onRemoveDataset={handleRemoveDataset} />
-          )}
-          
-          {datasets.length > 0 && (
-            <div className="flex justify-center mt-2 mb-6">
-              <Button
-                onClick={handleGenerateSuggestions}
-                className="bg-purple-700 hover:bg-purple-800"
-                disabled={isLoading || queryUsage.count >= queryLimit}
-              >
-                {isLoading ? (
-                  <>
-                    <Clock className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <BarChart className="mr-2 h-4 w-4" />
-                    Generate Visualization Suggestions
-                    {queryUsage.count >= queryLimit && " (Limit Reached)"}
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
-          
-          {visualSuggestions.length > 0 && (
-            <div ref={suggestionsRef}>
-              <VisualSuggestions suggestions={visualSuggestions} />
-            </div>
-          )}
+            
+            {apiError && (
+              <Card className="border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
+                    <Info className="h-5 w-5" />
+                    <span>Error from AI Service</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-red-600 dark:text-red-400">{apiError}</p>
+                  <p className="mt-2 text-gray-600 dark:text-gray-400">
+                    The application has automatically switched to basic suggestions. 
+                    Please try again later or contact support if the issue persists.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {datasets.length > 0 && (
+              <DatasetPreview datasets={datasets} onRemoveDataset={handleRemoveDataset} />
+            )}
+            
+            {datasets.length > 0 && (
+              <div className="flex justify-center mt-2 mb-6">
+                <Button
+                  onClick={handleGenerateSuggestions}
+                  className="bg-purple-700 hover:bg-purple-800"
+                  disabled={isLoading || queryUsage.count >= queryLimit}
+                >
+                  {isLoading ? (
+                    <>
+                      <Clock className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <BarChart className="mr-2 h-4 w-4" />
+                      Generate Visualization Suggestions
+                      {queryUsage.count >= queryLimit && " (Limit Reached)"}
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+            
+            {visualSuggestions.length > 0 && (
+              <div ref={suggestionsRef}>
+                <VisualSuggestions suggestions={visualSuggestions} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+      
+      <SocialLinks />
+    </>
   );
 };
 

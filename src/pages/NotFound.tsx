@@ -1,7 +1,7 @@
-
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
+import SocialLinks from "@/components/SocialLinks";
 
 const NotFound = () => {
   const location = useLocation();
@@ -44,8 +44,8 @@ const NotFound = () => {
           `}
         </script>
       </Helmet>
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <main className="text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+        <main className="text-center flex flex-col gap-8">
           <section aria-labelledby="error-title">
             <h1 id="error-title" className="text-4xl font-bold mb-4">404</h1>
             <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
@@ -53,6 +53,7 @@ const NotFound = () => {
               Return to Home
             </a>
           </section>
+          <SocialLinks />
         </main>
       </div>
     </>
