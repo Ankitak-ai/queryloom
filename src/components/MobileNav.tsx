@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Home, BarChart2, MessageSquare } from "lucide-react";
+import SocialLinks from '@/components/SocialLinks';
 
 const MobileNav = () => {
   const location = useLocation();
@@ -40,6 +41,16 @@ const MobileNav = () => {
               <span>Reviews</span>
             </Link>
           </nav>
+          
+          {/* Social links at the bottom of mobile menu */}
+          <div className="mt-auto border-t border-gray-200 dark:border-gray-700 pt-4">
+            <div className="flex items-center gap-2 px-3 mb-2 text-sm text-gray-500 dark:text-gray-400">
+              Follow us:
+            </div>
+            <div className="px-3">
+              <SocialLinks />
+            </div>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
