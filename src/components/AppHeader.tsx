@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LogIn, LogOut, UserPlus, MessageSquare, BarChart2 } from 'lucide-react';
 import SocialLinks from '@/components/SocialLinks';
+import MobileNav from '@/components/MobileNav';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AppHeader: React.FC = () => {
   const { user, displayName, signOut, loading } = useAuth();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   const handleSignOut = async () => {
     await signOut();
@@ -31,6 +34,8 @@ const AppHeader: React.FC = () => {
     <header className="bg-white dark:bg-gray-900 shadow-sm py-3">
       <div className="container mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
+          {isMobile && <MobileNav />}
+          
           <Link to="/" className="flex items-center gap-2">
             <img 
               src="/lovable-uploads/0c750f2c-f51d-49ac-bfd3-01fb7d81314a.png" 
